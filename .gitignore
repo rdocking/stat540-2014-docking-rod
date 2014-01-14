@@ -1,5 +1,7 @@
-# History files
+# History, data, and project files
 .Rhistory
+.Rproj.user
+.RData
 
 # Example code in package build process
 *-Ex.R
