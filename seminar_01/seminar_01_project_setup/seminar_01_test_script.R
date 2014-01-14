@@ -3,17 +3,18 @@
 
 # Set variables
 a <- 2
-b <- -3
+b <- -8
 sigSq <- 0.5
+n <- 400
 
 # Sample from uniform distribution
-x <- runif(40)
+x <- runif(n)
 # Calculate y values from normal distribution
-y <- a + b * x + rnorm(40, sd = sqrt(sigSq))
+y <- a + b * x + rnorm(n, sd = sqrt(sigSq))
 (avgX <- mean(x))
 
 # Write results to file and plot
 write(avgX, "avgX.txt")
 plot(x, y)
-abline(a, b, col = "purple")
+abline(a, b, col = "blue")
 dev.print(pdf, "toylinePlot.pdf")
