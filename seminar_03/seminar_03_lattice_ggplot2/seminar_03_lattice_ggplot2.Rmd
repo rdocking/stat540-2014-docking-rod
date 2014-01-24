@@ -1,0 +1,261 @@
+STAT540 Seminar 03 - lattice and ggplot2 graphics
+=================================================
+
+Rod Docking - 2014-01-23
+
+This is a workthrough of the material for the [lattice](http://www.ugrad.stat.ubc.ca/~stat540/seminars/seminar03_graphics-lattice.html) and [ggplot2](http://www.ugrad.stat.ubc.ca/~stat540/seminars/seminar03_graphics-ggplot2.html)
+tutorials for STAT540.
+
+Load the necessary libraries:
+
+```{r}
+library(lattice)
+library(ggplot2)
+```
+
+Read in the input data set. 
+(*Note that this is reading from a symlink to to the original data file from the course repo*)
+
+```{r}
+kDat <- readRDS("GSE4051_MINI.rds")
+str(kDat)
+table(kDat$devStage)
+table(kDat$gType)
+with(kDat, table(devStage, gType))
+```
+
+Scatterplots
+------------
+
+Make a scatterplot of the expression of two separate genes:
+
+```{r}
+xyplot(eggBomb ~ crabHammer, kDat)
+```
+
+> You try: request a scatterplot of the variable poisonFang against crabHammer.
+
+OK:
+
+```{r}
+xyplot(poisonFang ~ crabHammer, kDat)
+```
+
+> Let's imagine that crabHammer is somehow a natural explanatory variable or predictor (weird here, I admit, but go with me) and eggBomb and poisonFang are natural response variables. We might want to see both responses plotted against crabHammer at the same time. Here is a first way to do so, using a bit of a cheat known as the "extended formula interface" in lattice.
+
+```{r}
+xyplot(eggBomb + poisonFang ~ crabHammer, kDat,
+       auto.key = TRUE)
+```
+
+> What if we want each response to have it's own scatterplot, but we want to put them side-by-side for comparison?
+
+```{r}
+xyplot(eggBomb + poisonFang ~ crabHammer, kDat,
+       outer = TRUE, grid = TRUE)
+```
+
+> What if we'd like to know which points are from the wild type mice versus the Nrl knockouts?
+
+```{r}
+xyplot(eggBomb + poisonFang ~ crabHammer, kDat,
+       outer = TRUE, grid = TRUE,
+       groups = gType, auto.key = TRUE)
+```
+
+Reshape the data into a better format:
+
+```{r}
+nDat <-
+    with(kDat,
+         data.frame(sidChar, sidNum, devStage, gType, crabHammer,
+                    probeset = factor(rep(c("eggBomb", "poisonFang"), each = nrow(kDat))),
+                    geneExp = c(eggBomb, poisonFang)))
+str(nDat)
+```
+
+> Now we can make the previous plot with more canonical lattice syntax, i.e. this workflow and way of thinking will serve you better in the future:
+
+(*Note - above, we've put eggBomb and poisonFang into a new varaible, geneExpe*)
+
+```{r}
+xyplot(geneExp ~ crabHammer | probeset, nDat,
+       grid = TRUE,
+       groups = gType, auto.key = TRUE)
+```
+
+> You try: Remake this plot but instead of conveying genotype via color, show developmental stage.
+
+OK:
+
+```{r}
+xyplot(geneExp ~ crabHammer | probeset, nDat,
+       grid = TRUE,
+       groups = devStage, auto.key = TRUE)
+```
+
+Stripplot
+---------
+
+> The next set of figures we will make requires yet more data reshaping, which is a substantial background task in many analyses. We drop the idea of crabHammer being a predictor and eggBomb and poisonFang being responses and we just treat them all equivalently.
+
+```{r}
+oDat <-
+    with(kDat,
+         data.frame(sidChar, sidNum, devStage, gType,
+                    probeset = factor(rep(c("crabHammer", "eggBomb",
+                    "poisonFang"), each = nrow(kDat))),
+                    geneExp = c(crabHammer, eggBomb, poisonFang)))
+str(oDat)
+```
+
+> A stripplot is a univariate scatterplot. Let's inspect the gene expression data, plain and simple.
+
+```{r}
+stripplot(~ geneExp, oDat)
+```
+
+> Pretty boring and slightly nonsensical! We had to start somewhere. Let's split things out for the three different genes.
+
+```{r}
+stripplot(probeset ~ geneExp, oDat)
+```
+
+> Sometimes, it can help to add jitter, a small bit of meaningless noise, in the horizontal position.
+
+```{r}
+stripplot(probeset ~ geneExp, oDat, jitter.data = TRUE)
+```
+
+> Notice that all the data is presented in one panel but with the different genes corresponding to different locations in the y direction. What if we want to put the different genes in different panels?
+
+```{r}
+stripplot(~ geneExp | probeset, oDat,
+          layout = c(nlevels(oDat$probeset), 1))
+```
+
+> What if we want to see information about wild type versus Nrl knockout?
+
+```{r}
+stripplot(~ geneExp| probeset, oDat, 
+          layout = c(nlevels(oDat$probeset), 1),
+          groups = gType, auto.key = TRUE)
+```
+
+> Let's start exploring gene expression changes over the course of development.
+
+```{r}
+stripplot(geneExp ~ devStage, oDat)
+```
+
+> Retaining one panel per gene ....
+
+```{r}
+stripplot(geneExp ~ devStage | probeset, oDat, 
+          layout = c(nlevels(oDat$probeset), 1))
+```
+
+> Adding back the genotype information ....
+
+```{r}
+stripplot(geneExp ~ devStage | probeset, oDat, 
+          layout = c(nlevels(oDat$probeset), 1),
+          groups = gType, auto.key = TRUE)
+```
+
+> Adding averages
+
+```{r}
+stripplot(geneExp ~ devStage | probeset, oDat, 
+          layout = c(nlevels(oDat$probeset), 1),
+          groups = gType, auto.key = TRUE, grid = TRUE,
+          type = c('p', 'a'))
+```
+
+> The argument 'type' can be used to add a variety of enhancements. Type is specified as a vector (through the use of 'c'). The option 'p' in the above example specifies the data as points on the plot, 'a' refers to getting the average of each category and joining them by a line (other summaries can be requested too). Some of the other options include 'l' for joining points by lines, 'b' for both points and lines, 'r' for adding the fit from a simple linear regression and 'smooth' for adding a nonparametric "smooth" fitted curve.
+
+Densityplot
+-----------
+
+> Here's a nice alternative to histograms!
+
+```{r}
+densityplot(~ geneExp, oDat)
+```
+
+(*Note - the stripplot of points seems to be part of the default here*)
+
+> The vertical bar works as usual.
+
+```{r}
+densityplot(~ geneExp | gType, oDat,
+            grid = TRUE)
+```
+
+> `groups` works as usual -- a real advantage over histogram.
+
+```{r}
+densityplot(~ geneExp, oDat,
+            groups = gType, auto.key = TRUE)
+```
+
+> The argument 'bw' specifies the bandwidth or the spread of the underlying Gaussian distributions. It controls how smooth this smoothed histogram will be. Though densityplot() has a sensible default, you can always specify directly if you wish. The argument 'n' controls the number of points at which the kernel density estimate is evaluated. It is easy to confuse this with the usual use of 'n' to denote sample size, so beware. If your density looks jaggedy, try increasing 'n'.
+
+```{r}
+jBw <- 0.2
+jn <- 400
+densityplot(~ geneExp, oDat,
+            groups = gType, auto.key = TRUE,
+            bw = jBw, n = jn,
+            main = paste("bw =", jBw, ", n =", jn))
+```
+
+> You try: use densityplot() to explore the gene expression distribution by gene and/or developmental stage. Play with 'bw' and 'n' if you like.
+
+Try colouring by gene:
+
+```{r}
+densityplot(~ geneExp, oDat,
+            groups = probeset, auto.key = TRUE)
+```
+
+And then by developmental stage:
+
+```{r}
+densityplot(~ geneExp, oDat,
+            groups = devStage, auto.key = TRUE)
+```
+
+Try splitting into panels (colour is devStage, panels are split by probe):
+
+```{r}
+densityplot(~ geneExp | probeset, oDat,
+            groups = devStage, auto.key = TRUE)
+```
+
+Boxplot
+-------
+
+> There is also a time and place for boxplots, obtained with the lattice function bwplot() for "box-and-whiskers plot".
+```{r}
+bwplot(geneExp ~ devStage, oDat)
+```
+
+> The vertical bar | still works ....
+
+```{r}
+bwplot(geneExp ~ devStage | gType, oDat)
+```
+
+> A violinplot is a hybrid of densityplot and histogram.
+
+```{r}
+bwplot(geneExp ~ devStage, oDat,
+       panel = panel.violin)
+```
+
+Heatmaps
+--------
+
+
+
