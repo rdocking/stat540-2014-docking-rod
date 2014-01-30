@@ -296,3 +296,117 @@ stripplot(geneExp ~ devStage | probeset, oDat, layout = c(nlevels(oDat$probeset)
 Densityplot
 -----------
 
+> Here's a nice alternative to histograms!
+
+
+```r
+densityplot(~geneExp, oDat)
+```
+
+![plot of chunk unnamed-chunk-21](figure/unnamed-chunk-21.png) 
+
+
+(*Note - the stripplot of points seems to be part of the default here*)
+
+> The vertical bar works as usual.
+
+
+```r
+densityplot(~geneExp | gType, oDat, grid = TRUE)
+```
+
+![plot of chunk unnamed-chunk-22](figure/unnamed-chunk-22.png) 
+
+
+> `groups` works as usual -- a real advantage over histogram.
+
+
+```r
+densityplot(~geneExp, oDat, groups = gType, auto.key = TRUE)
+```
+
+![plot of chunk unnamed-chunk-23](figure/unnamed-chunk-23.png) 
+
+
+> The argument 'bw' specifies the bandwidth or the spread of the underlying Gaussian distributions. It controls how smooth this smoothed histogram will be. Though densityplot() has a sensible default, you can always specify directly if you wish. The argument 'n' controls the number of points at which the kernel density estimate is evaluated. It is easy to confuse this with the usual use of 'n' to denote sample size, so beware. If your density looks jaggedy, try increasing 'n'.
+
+
+```r
+jBw <- 0.2
+jn <- 400
+densityplot(~geneExp, oDat, groups = gType, auto.key = TRUE, bw = jBw, n = jn, 
+    main = paste("bw =", jBw, ", n =", jn))
+```
+
+![plot of chunk unnamed-chunk-24](figure/unnamed-chunk-24.png) 
+
+
+> You try: use densityplot() to explore the gene expression distribution by gene and/or developmental stage. Play with 'bw' and 'n' if you like.
+
+Try colouring by gene:
+
+
+```r
+densityplot(~geneExp, oDat, groups = probeset, auto.key = TRUE)
+```
+
+![plot of chunk unnamed-chunk-25](figure/unnamed-chunk-25.png) 
+
+
+And then by developmental stage:
+
+
+```r
+densityplot(~geneExp, oDat, groups = devStage, auto.key = TRUE)
+```
+
+![plot of chunk unnamed-chunk-26](figure/unnamed-chunk-26.png) 
+
+
+Try splitting into panels (colour is devStage, panels are split by probe):
+
+
+```r
+densityplot(~geneExp | probeset, oDat, groups = devStage, auto.key = TRUE)
+```
+
+![plot of chunk unnamed-chunk-27](figure/unnamed-chunk-27.png) 
+
+
+Boxplot
+-------
+
+> There is also a time and place for boxplots, obtained with the lattice function bwplot() for "box-and-whiskers plot".
+
+```r
+bwplot(geneExp ~ devStage, oDat)
+```
+
+![plot of chunk unnamed-chunk-28](figure/unnamed-chunk-28.png) 
+
+
+> The vertical bar | still works ....
+
+
+```r
+bwplot(geneExp ~ devStage | gType, oDat)
+```
+
+![plot of chunk unnamed-chunk-29](figure/unnamed-chunk-29.png) 
+
+
+> A violinplot is a hybrid of densityplot and histogram.
+
+
+```r
+bwplot(geneExp ~ devStage, oDat, panel = panel.violin)
+```
+
+![plot of chunk unnamed-chunk-30](figure/unnamed-chunk-30.png) 
+
+
+Heatmaps
+--------
+
+
+

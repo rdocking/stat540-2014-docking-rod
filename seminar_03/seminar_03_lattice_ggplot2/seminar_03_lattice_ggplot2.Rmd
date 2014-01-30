@@ -257,5 +257,188 @@ bwplot(geneExp ~ devStage, oDat,
 Heatmaps
 --------
 
+Load in the larger dataset:
+
+```{r}
+prDat <- read.table("GSE4051_data.tsv")
+str(prDat, max.level = 0)
+```
+
+Load in the RDS file instead to get the factor levels:
+
+```{r}
+prDes <- readRDS("GSE4051_design.rds")
+str(prDes)
+```
+
+> Let's draw 50 probesets at random -- but in a repeatable way!
+
+```{r}
+set.seed(1)
+(yo <- sample(1:nrow(prDat), size = 50))
+hDat <- prDat[yo, ]
+str(hDat)
+```
+
+> The functions for heatmapping expect a matrix not a data.frame, so we will convert hDat and also transpose for a nicer heatmap orientation below. I also give the samples more informative names that capture genotype and developmental stage.
+
+```{r}
+hDat <- as.matrix(t(hDat))
+rownames(hDat) <- with(prDes,
+                       paste(devStage, gType, sidChar, sep="_"))
+str(hDat)
+```
+
+Plot a heatmap:
+
+```{r}
+heatmap(hDat, Rowv = NA, Colv = NA, scale="none", margins = c(5, 8))
+```
+
+> Some of the other built-in color schemes aren't quite as likely to make your eyes bleed ...
+
+```{r}
+heatmap(hDat, Rowv = NA, Colv = NA, col = cm.colors(256),
+        scale="none", margins = c(5, 8))
+```
+
+(_Note: the col argument is the one that changed the colours_)
+
+Load RColorBrewer to get access to more palettes:
+
+```{r}
+library(RColorBrewer)
+display.brewer.all()
+```
+
+Use colorRampPalette to make custom palettes:
+
+```{r}
+jGraysFun <- colorRampPalette(brewer.pal(n = 9, "Greys"))
+jBuPuFun <- colorRampPalette(brewer.pal(n = 9, "BuPu"))
+```
+
+Re-plot the heatmap using the two new palettes:
+
+```{r}
+heatmap(hDat, Rowv = NA, Colv = NA, scale="none", margins = c(5, 8),
+        col = jGraysFun(256))
+heatmap(hDat, Rowv = NA, Colv = NA, scale="none", margins = c(5, 8),
+        col = jBuPuFun(256))
+```
+
+> By specifying Rowv = NA, Colv = NA, scale = "none", we have been suppressing some rather common heatmap features -- the inclusion of row and column dendrograms and the normalization of the data. Let's look at the heatmap as it would be rendered by default.
+
+```{r}
+heatmap(hDat, margins = c(5, 8), col = jBuPuFun(256))
+```
+
+> Now we allow scaling within column:
+
+```{r}
+heatmap(hDat, col = jBuPuFun(256), margins = c(5, 8), scale=c("column"))
+```
+
+> Finally we try out another popular heatmapping function heatmap.2() from the gplots package. This adds an automatic color legend, which helps you determine what each color extreme actually means. If you need to install the package do this:
+
+```{r}
+install.packages("gplots")
+library(gplots)
+heatmap.2(hDat, col = jGraysFun, trace = "none")
+heatmap.2(hDat, col = jBuPuFun, trace = "none")
+```
+
+Overplotting
+------------
+
+> Now that we've loaded the main dataset we can also explore high-volume scatterplotting and the solutions to overplotting. First let's pick two samples at random to plot against each other.
+
+```{r}
+set.seed(924)
+(yo <- sample(1:ncol(prDat), size = 2))
+y <- prDat[[yo[1]]]
+z <- prDat[[yo[2]]]
+str(y)
+str(z)
+```
+
+(_Note: subsetting notation to get the two vectors out of the larger object_)
+
+```{r}
+xyplot(y ~ z, asp = 1)
+```
+
+Overplotting!
+
+```{r}
+smoothScatter(y ~ z, asp = 1)
+```
+
+> You can see that we were missing some information in the dark cloud above. There is one main clump of data, concentrated around (6, 6) and then petering out diagonally up the x = y line. There's arguably a second, smaller clump of data on a steeper line running through the points ~(10, 8) and ~(14, 14).
+
+> The xyplot() function in lattice can produce a similar plot by specifying a smoothScatter-type of panel function.
+
+```{r}
+xyplot(y ~ z, asp = 1, panel = panel.smoothScatter, nbin = 150)
+```
+
+> The add-on package hexbin implements hexagonal binning. Basically the plane is divided into hexagons and shaded as described above. Install it if you need to.
+
+```{r}
+install.packages("hexbin")
+library(hexbin)
+hexbinplot(y ~ z)
+```
+
+Plot matrix
+-----------
+
+Functions for plotting pairs of samples against eachother
+
+```{r}
+set.seed(3)
+(yo <- sample(1:ncol(prDat), size = 4))
+pairDat <- subset(prDat, select = yo)
+str(pairDat)
+```
+
+> Using the base function pairs() ... You will notice this is a bit slow and we get the usual awful dark point clouds.
+
+```{r}
+pairs(pairDat)
+```
+
+> However, pairs() can be combined with smoothScatter() for a better result. Somewhat faster and definitely better looking, more informative.
+
+```{r}
+pairs(pairDat,
+      panel = function(...) smoothScatter(..., add=TRUE))
+```
+
+(_Note: I'm not sure what the '...' notation means still_)
+
+> Here's splom() from lattice, first using the default, non-high-volume panel function.
+
+```{r}
+splom(pairDat)
+```
+
+> Here's splom() from lattice again, but using a smoothScatter-type panel function. Much faster! More informative!
+
+```{r}
+splom(pairDat, panel = panel.smoothScatter, raster = TRUE)
+```
+
+> Finally, here's hexplom().
+
+```{r}
+hexplom(pairDat)
+```
+
+Take-home Problem
+-----------------
+
+> The full photoRec dataset has 39 samples and 29949 probesets. Choose 2 ... or 20 ... or 200 random probesets/genes and look for gene expression differences between the two genotypes, wild type versus knockout. Make use of the graphing techniques discussed this week such as scatter plots, data heatmaps, correlation heatmaps, etc. Share questions, success, failure on the Google group.
+
 
 
