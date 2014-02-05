@@ -1,0 +1,37 @@
+R Cheatsheet
+============
+
+Commonly Used Libraries
+-----------------------
+
+`lattice` - Lattice Graphics
+`ggplot2` - Grammar of Graphics
+`MASS` - Support datasets for Venables and Ripley text
+
+```{r}
+library(lattice)
+library(ggplot2)
+library(MASS)
+```
+
+
+Helper Functions
+----------------
+
+`apropos` - Find objects by partial name
+
+```{r}
+apropos("^geom_")
+```
+
+`with` - Evaluate an R expression in an environment constructeed from data
+
+```{r}
+library(MASS)
+with(anorexia, {
+    anorex.1 <- glm(Postwt ~ Prewt + Treat + offset(Prewt),
+                    family = gaussian)
+    summary(anorex.1)
+})
+```
+
