@@ -16,7 +16,7 @@ library(ggplot2)
 
 
 Read in the input data set. 
-(*Note that this is reading from a symlink to to the original data file from the course repo*)
+(*Note that this assumes the course git repository is checked out in the appropriate place*)
 
 
 ```r
