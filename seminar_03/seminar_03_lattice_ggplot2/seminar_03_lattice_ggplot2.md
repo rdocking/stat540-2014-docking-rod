@@ -814,8 +814,426 @@ hexplom(pairDat)
 ![plot of chunk unnamed-chunk-53](figure/unnamed-chunk-53.png) 
 
 
+ggplot2
+=======
+
+*Note that the dataset was loaded at the top of this document, since I'm continuing from the latice tutorial*
+
+
+```r
+str(kDat)
+```
+
+```
+## 'data.frame':	39 obs. of  7 variables:
+##  $ sidChar   : chr  "Sample_20" "Sample_21" "Sample_22" "Sample_23" ...
+##  $ sidNum    : num  20 21 22 23 16 17 6 24 25 26 ...
+##  $ devStage  : Factor w/ 5 levels "E16","P2","P6",..: 1 1 1 1 1 1 1 2 2 2 ...
+##  $ gType     : Factor w/ 2 levels "wt","NrlKO": 1 1 1 1 2 2 2 1 1 1 ...
+##  $ crabHammer: num  10.22 10.02 9.64 9.65 8.58 ...
+##  $ eggBomb   : num  7.46 6.89 6.72 6.53 6.47 ...
+##  $ poisonFang: num  7.37 7.18 7.35 7.04 7.49 ...
+```
+
+```r
+table(kDat$devStage)
+```
+
+```
+## 
+##     E16      P2      P6     P10 4_weeks 
+##       7       8       8       8       8
+```
+
+```r
+table(kDat$gType)
+```
+
+```
+## 
+##    wt NrlKO 
+##    20    19
+```
+
+```r
+with(kDat, table(devStage, gType))
+```
+
+```
+##          gType
+## devStage  wt NrlKO
+##   E16      4     3
+##   P2       4     4
+##   P6       4     4
+##   P10      4     4
+##   4_weeks  4     4
+```
+
+
+qplot
+-----
+
+Simple scatter plot:
+
+
+```r
+qplot(crabHammer, eggBomb, data = kDat)
+```
+
+![plot of chunk unnamed-chunk-55](figure/unnamed-chunk-55.png) 
+
+
+scatterplots
+------------
+
+Now use the main ggplot function instead of qplot:
+
+
+```r
+p <- ggplot(kDat, aes(x = crabHammer, y = eggBomb))
+str(p)
+```
+
+```
+## List of 9
+##  $ data       :'data.frame':	39 obs. of  7 variables:
+##   ..$ sidChar   : chr [1:39] "Sample_20" "Sample_21" "Sample_22" "Sample_23" ...
+##   ..$ sidNum    : num [1:39] 20 21 22 23 16 17 6 24 25 26 ...
+##   ..$ devStage  : Factor w/ 5 levels "E16","P2","P6",..: 1 1 1 1 1 1 1 2 2 2 ...
+##   ..$ gType     : Factor w/ 2 levels "wt","NrlKO": 1 1 1 1 2 2 2 1 1 1 ...
+##   ..$ crabHammer: num [1:39] 10.22 10.02 9.64 9.65 8.58 ...
+##   ..$ eggBomb   : num [1:39] 7.46 6.89 6.72 6.53 6.47 ...
+##   ..$ poisonFang: num [1:39] 7.37 7.18 7.35 7.04 7.49 ...
+##  $ layers     : list()
+##  $ scales     :Reference class 'Scales' [package "ggplot2"] with 1 fields
+##   ..$ scales: NULL
+##   ..and 21 methods, of which 9 are possibly relevant:
+##   ..  add, clone, find, get_scales, has_scale, initialize, input, n,
+##   ..  non_position_scales
+##  $ mapping    :List of 2
+##   ..$ x: symbol crabHammer
+##   ..$ y: symbol eggBomb
+##  $ theme      : list()
+##  $ coordinates:List of 1
+##   ..$ limits:List of 2
+##   .. ..$ x: NULL
+##   .. ..$ y: NULL
+##   ..- attr(*, "class")= chr [1:2] "cartesian" "coord"
+##  $ facet      :List of 1
+##   ..$ shrink: logi TRUE
+##   ..- attr(*, "class")= chr [1:2] "null" "facet"
+##  $ plot_env   :<environment: R_GlobalEnv> 
+##  $ labels     :List of 2
+##   ..$ x: chr "crabHammer"
+##   ..$ y: chr "eggBomb"
+##  - attr(*, "class")= chr [1:2] "gg" "ggplot"
+```
+
+```r
+print(p)  # Error: No layers in plot
+```
+
+```
+## Error: No layers in plot
+```
+
+
+This just sets the aesthetics. To actually plot something, we need to add a layer:
+
+
+```r
+(p <- p + geom_point())
+```
+
+![plot of chunk unnamed-chunk-57](figure/unnamed-chunk-571.png) 
+
+```r
+(p <- p + stat_smooth())
+```
+
+```
+## geom_smooth: method="auto" and size of largest group is <1000, so using loess. Use 'method = x' to change the smoothing method.
+```
+
+![plot of chunk unnamed-chunk-57](figure/unnamed-chunk-572.png) 
+
+
+Some customization options:
+
+
+```r
+(p <- p + theme_bw() + xlab("Expression of crabHammer") + ylab("Expression of eggBomb") + 
+    ggtitle("Scatterplot for expression levels"))
+```
+
+```
+## geom_smooth: method="auto" and size of largest group is <1000, so using loess. Use 'method = x' to change the smoothing method.
+```
+
+![plot of chunk unnamed-chunk-58](figure/unnamed-chunk-58.png) 
+
+
+Re-shape data to mimic the earlier lattice plot:
+
+
+```r
+nDat <- with(kDat, data.frame(sidChar, sidNum, devStage, gType, crabHammer, 
+    probeset = factor(rep(c("eggBomb", "poisonFang"), each = nrow(kDat))), geneExp = c(eggBomb, 
+        poisonFang)))
+str(nDat)
+```
+
+```
+## 'data.frame':	78 obs. of  7 variables:
+##  $ sidChar   : Factor w/ 39 levels "Sample_1","Sample_10",..: 13 14 15 16 8 9 36 17 18 19 ...
+##  $ sidNum    : num  20 21 22 23 16 17 6 24 25 26 ...
+##  $ devStage  : Factor w/ 5 levels "E16","P2","P6",..: 1 1 1 1 1 1 1 2 2 2 ...
+##  $ gType     : Factor w/ 2 levels "wt","NrlKO": 1 1 1 1 2 2 2 1 1 1 ...
+##  $ crabHammer: num  10.22 10.02 9.64 9.65 8.58 ...
+##  $ probeset  : Factor w/ 2 levels "eggBomb","poisonFang": 1 1 1 1 1 1 1 1 1 1 ...
+##  $ geneExp   : num  7.46 6.89 6.72 6.53 6.47 ...
+```
+
+
+Wrong way to map colour:
+
+
+```r
+(p <- ggplot(nDat, aes(crabHammer, geneExp)) + geom_point(color = probeset))
+```
+
+```
+## Error: object 'probeset' not found
+```
+
+
+The above doesn't work because it didn't _map_ the data - it tried to apply probeset to _all_ the data. Correct way to call is:
+
+
+```r
+(p <- ggplot(nDat, aes(crabHammer, geneExp, colour = probeset)) + geom_point())
+```
+
+![plot of chunk unnamed-chunk-61](figure/unnamed-chunk-61.png) 
+
+
+Add smoothers again:
+
+
+```r
+(p <- ggplot(nDat, aes(crabHammer, geneExp, color = probeset)) + geom_point() + 
+    stat_smooth(se = FALSE))
+```
+
+```
+## geom_smooth: method="auto" and size of largest group is <1000, so using loess. Use 'method = x' to change the smoothing method.
+```
+
+![plot of chunk unnamed-chunk-62](figure/unnamed-chunk-62.png) 
+
+
+*Note that in the original, the call was* `se = F` *- that seems a little opaque to me*
+
+The smoother was applied to each group, after we created groups using the colour aesthetic. To over-rule that:
+
+
+```r
+(p <- ggplot(nDat, aes(crabHammer, geneExp, color = probeset)) + geom_point() + 
+    stat_smooth(se = F, aes(group = 1)))
+```
+
+```
+## geom_smooth: method="auto" and size of largest group is <1000, so using loess. Use 'method = x' to change the smoothing method.
+```
+
+![plot of chunk unnamed-chunk-63](figure/unnamed-chunk-63.png) 
+
+
+Use facets to split things into panels:
+
+
+```r
+(p <- ggplot(nDat, aes(crabHammer, geneExp)) + geom_point() + facet_wrap(~probeset))
+```
+
+![plot of chunk unnamed-chunk-64](figure/unnamed-chunk-64.png) 
+
+
+Add colours to indicate genotype:
+
+
+```r
+(p <- ggplot(nDat, aes(crabHammer, geneExp, color = gType)) + geom_point() + 
+    facet_wrap(~probeset))
+```
+
+![plot of chunk unnamed-chunk-65](figure/unnamed-chunk-65.png) 
+
+
+*You try: Remake this plot but instead of conveying genotype via color, show developmental stage.*
+
+OK:
+
+
+```r
+(p <- ggplot(nDat, aes(crabHammer, geneExp, color = devStage)) + geom_point() + 
+    facet_wrap(~probeset))
+```
+
+![plot of chunk unnamed-chunk-66](figure/unnamed-chunk-66.png) 
+
+
+Stripplot
+---------
+
+Reshape the data again:
+
+
+```r
+oDat <- with(kDat, data.frame(sidChar, sidNum, devStage, gType, probeset = factor(rep(c("crabHammer", 
+    "eggBomb", "poisonFang"), each = nrow(kDat))), geneExp = c(crabHammer, eggBomb, 
+    poisonFang)))
+str(oDat)
+```
+
+```
+## 'data.frame':	117 obs. of  6 variables:
+##  $ sidChar : Factor w/ 39 levels "Sample_1","Sample_10",..: 13 14 15 16 8 9 36 17 18 19 ...
+##  $ sidNum  : num  20 21 22 23 16 17 6 24 25 26 ...
+##  $ devStage: Factor w/ 5 levels "E16","P2","P6",..: 1 1 1 1 1 1 1 2 2 2 ...
+##  $ gType   : Factor w/ 2 levels "wt","NrlKO": 1 1 1 1 2 2 2 1 1 1 ...
+##  $ probeset: Factor w/ 3 levels "crabHammer","eggBomb",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ geneExp : num  10.22 10.02 9.64 9.65 8.58 ...
+```
+
+
+Simple stripplot:
+
+
+```r
+(p <- ggplot(oDat, aes(geneExp, probeset)) + geom_point())
+```
+
+![plot of chunk unnamed-chunk-68](figure/unnamed-chunk-68.png) 
+
+
+Add jitter:
+
+
+```r
+(p <- ggplot(oDat, aes(geneExp, probeset)) + geom_point(position = position_jitter(height = 0.1)))
+```
+
+![plot of chunk unnamed-chunk-69](figure/unnamed-chunk-69.png) 
+
+
+Look at changes relative to developmental stage:
+
+
+```r
+(p <- ggplot(oDat, aes(devStage, geneExp)) + geom_point())
+```
+
+![plot of chunk unnamed-chunk-70](figure/unnamed-chunk-70.png) 
+
+
+Split into panels:
+
+
+```r
+(p <- p + facet_wrap(~probeset))
+```
+
+![plot of chunk unnamed-chunk-71](figure/unnamed-chunk-711.png) 
+
+```r
+(p <- p + aes(color = gType))
+```
+
+![plot of chunk unnamed-chunk-71](figure/unnamed-chunk-712.png) 
+
+
+Add averages using a summary stat:
+
+
+```r
+(p <- p + stat_summary(fun.y = mean, geom = "point", shape = 4, size = 4))
+```
+
+![plot of chunk unnamed-chunk-72](figure/unnamed-chunk-72.png) 
+
+
+Density plots
+-------------
+
+Simple density plot two ways:
+
+
+```r
+(p <- ggplot(oDat, aes(geneExp)) + geom_density())
+```
+
+![plot of chunk unnamed-chunk-73](figure/unnamed-chunk-731.png) 
+
+```r
+(p <- ggplot(oDat, aes(geneExp)) + stat_density(geom = "line", position = "identity"))
+```
+
+![plot of chunk unnamed-chunk-73](figure/unnamed-chunk-732.png) 
+
+
+To mimic the lattice graphic:
+
+
+```r
+(p <- ggplot(oDat, aes(geneExp)) + stat_density(geom = "line", position = "identity") + 
+    geom_point(aes(y = 0.05), position = position_jitter(height = 0.005)))
+```
+
+![plot of chunk unnamed-chunk-74](figure/unnamed-chunk-74.png) 
+
+
+Change the bandwidth of the density plot using `adjust`:
+
+
+```r
+(p <- ggplot(oDat, aes(geneExp)) + stat_density(geom = "line", position = "identity", 
+    adjust = 0.5) + geom_point(aes(y = 0.05), position = position_jitter(height = 0.005)))
+```
+
+![plot of chunk unnamed-chunk-75](figure/unnamed-chunk-75.png) 
+
+
+Add facets:
+
+
+```r
+(p <- p + facet_wrap(~gType))
+```
+
+![plot of chunk unnamed-chunk-76](figure/unnamed-chunk-76.png) 
+
+
+Or colours:
+
+
+```r
+(p <- ggplot(oDat, aes(geneExp, color = gType)) + stat_density(geom = "line", 
+    position = "identity") + geom_point(aes(y = 0.05), position = position_jitter(height = 0.005)))
+```
+
+![plot of chunk unnamed-chunk-77](figure/unnamed-chunk-77.png) 
+
+
+
+
+
+
+
+
+
 Take-home Problem
------------------
+=================
 
 > The full photoRec dataset has 39 samples and 29949 probesets. Choose 2 ... or 20 ... or 200 random probesets/genes and look for gene expression differences between the two genotypes, wild type versus knockout. Make use of the graphing techniques discussed this week such as scatter plots, data heatmaps, correlation heatmaps, etc. Share questions, success, failure on the Google group.
 
