@@ -70,6 +70,9 @@ with(kDat, table(devStage, gType))
 ```
 
 
+Lattice
+=======
+
 Scatterplots
 ------------
 
@@ -150,7 +153,7 @@ str(nDat)
 
 > Now we can make the previous plot with more canonical lattice syntax, i.e. this workflow and way of thinking will serve you better in the future:
 
-(*Note - above, we've put eggBomb and poisonFang into a new varaible, geneExpe*)
+(*Note - above, we've put eggBomb and poisonFang into a new varaible, geneExp*)
 
 
 ```r
@@ -615,24 +618,27 @@ library(gplots)
 ```
 
 ```
-## Error: there is no package called 'gplots'
+## KernSmooth 2.23 loaded
+## Copyright M. P. Wand 1997-2009
+## 
+## Attaching package: 'gplots'
+## 
+## The following object is masked from 'package:stats':
+## 
+##     lowess
 ```
 
 ```r
 heatmap.2(hDat, col = jGraysFun, trace = "none")
 ```
 
-```
-## Error: could not find function "heatmap.2"
-```
+![plot of chunk unnamed-chunk-42](figure/unnamed-chunk-421.png) 
 
 ```r
 heatmap.2(hDat, col = jBuPuFun, trace = "none")
 ```
 
-```
-## Error: could not find function "heatmap.2"
-```
+![plot of chunk unnamed-chunk-42](figure/unnamed-chunk-422.png) 
 
 
 Overplotting
@@ -686,11 +692,6 @@ Overplotting!
 smoothScatter(y ~ z, asp = 1)
 ```
 
-```
-## KernSmooth 2.23 loaded
-## Copyright M. P. Wand 1997-2009
-```
-
 ![plot of chunk unnamed-chunk-45](figure/unnamed-chunk-45.png) 
 
 
@@ -722,16 +723,14 @@ library(hexbin)
 ```
 
 ```
-## Error: there is no package called 'hexbin'
+## Loading required package: grid
 ```
 
 ```r
 hexbinplot(y ~ z)
 ```
 
-```
-## Error: could not find function "hexbinplot"
-```
+![plot of chunk unnamed-chunk-47](figure/unnamed-chunk-47.png) 
 
 
 Plot matrix
@@ -812,9 +811,7 @@ splom(pairDat, panel = panel.smoothScatter, raster = TRUE)
 hexplom(pairDat)
 ```
 
-```
-## Error: could not find function "hexplom"
-```
+![plot of chunk unnamed-chunk-53](figure/unnamed-chunk-53.png) 
 
 
 Take-home Problem

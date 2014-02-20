@@ -24,6 +24,9 @@ table(kDat$gType)
 with(kDat, table(devStage, gType))
 ```
 
+Lattice
+=======
+
 Scatterplots
 ------------
 
@@ -76,7 +79,7 @@ str(nDat)
 
 > Now we can make the previous plot with more canonical lattice syntax, i.e. this workflow and way of thinking will serve you better in the future:
 
-(*Note - above, we've put eggBomb and poisonFang into a new varaible, geneExpe*)
+(*Note - above, we've put eggBomb and poisonFang into a new varaible, geneExp*)
 
 ```{r}
 xyplot(geneExp ~ crabHammer | probeset, nDat,
@@ -435,8 +438,224 @@ splom(pairDat, panel = panel.smoothScatter, raster = TRUE)
 hexplom(pairDat)
 ```
 
+ggplot2
+=======
+
+*Note that the dataset was loaded at the top of this document, since I'm continuing from the latice tutorial*
+
+```{r}
+str(kDat)
+table(kDat$devStage)
+table(kDat$gType)
+with(kDat, table(devStage, gType))
+```
+
+qplot
+-----
+
+Simple scatter plot:
+
+```{r}
+qplot(crabHammer, eggBomb, data = kDat)
+```
+
+scatterplots
+------------
+
+Now use the main ggplot function instead of qplot:
+
+```{r}
+p <- ggplot(kDat, aes(x = crabHammer, y = eggBomb))
+str(p)
+print(p) # Error: No layers in plot
+```
+
+This just sets the aesthetics. To actually plot something, we need to add a layer:
+
+```{r}
+(p  <- p + geom_point())
+(p <- p + stat_smooth())
+```
+
+Some customization options:
+
+```{r}
+(p <- p + theme_bw() + 
+   xlab("Expression of crabHammer") + 
+   ylab("Expression of eggBomb") + 
+   ggtitle("Scatterplot for expression levels"))
+```
+
+Re-shape data to mimic the earlier lattice plot:
+
+```{r}
+nDat <-
+    with(kDat,
+         data.frame(sidChar, sidNum, devStage, gType, crabHammer,
+                    probeset = factor(rep(c("eggBomb", "poisonFang"),
+                                          each = nrow(kDat))),
+                    geneExp = c(eggBomb, poisonFang)))
+str(nDat)
+```
+
+Wrong way to map colour:
+
+```{r}
+(p <- ggplot(nDat, aes(crabHammer, geneExp)) + 
+   geom_point(color = probeset))
+```
+
+The above doesn't work because it didn't _map_ the data - it tried to apply probeset to _all_ the data. Correct way to call is:
+
+```{r}
+(p <- ggplot(nDat, aes(crabHammer, geneExp, colour = probeset)) + 
+   geom_point())
+```
+
+Add smoothers again:
+
+```{r}
+(p <- ggplot(nDat, aes(crabHammer, geneExp, color = probeset)) + 
+   geom_point() + 
+   stat_smooth(se = FALSE))
+```
+
+*Note that in the original, the call was* `se = F` *- that seems a little opaque to me*
+
+The smoother was applied to each group, after we created groups using the colour aesthetic. To over-rule that:
+
+```{r}
+(p <- ggplot(nDat, aes(crabHammer, geneExp, color = probeset)) + 
+   geom_point() + 
+   stat_smooth(se = F, aes(group = 1)))
+```
+
+Use facets to split things into panels:
+
+```{r}
+(p <- ggplot(nDat, aes(crabHammer, geneExp)) + 
+   geom_point() + 
+   facet_wrap(~ probeset))
+```
+
+Add colours to indicate genotype:
+
+```{r}
+(p <- ggplot(nDat, aes(crabHammer, geneExp, color = gType)) + 
+   geom_point() + 
+   facet_wrap(~ probeset))
+```
+
+*You try: Remake this plot but instead of conveying genotype via color, show developmental stage.*
+
+OK:
+
+```{r}
+(p <- ggplot(nDat, aes(crabHammer, geneExp, color = devStage)) + 
+   geom_point() + 
+   facet_wrap(~ probeset))
+```
+
+Stripplot
+---------
+
+Reshape the data again:
+
+```{r}
+oDat <-
+  with(kDat,
+       data.frame(sidChar, sidNum, devStage, gType,
+                  probeset = factor(rep(c("crabHammer", "eggBomb",
+                                          "poisonFang"), each = nrow(kDat))),
+                  geneExp = c(crabHammer, eggBomb, poisonFang)))
+str(oDat)
+```
+
+Simple stripplot:
+
+```{r}
+(p <- ggplot(oDat, aes(geneExp, probeset)) + 
+   geom_point())
+```
+
+Add jitter:
+
+```{r}
+(p <- ggplot(oDat, aes(geneExp, probeset)) + 
+   geom_point(position = position_jitter(height = 0.1)))
+```
+
+Look at changes relative to developmental stage:
+
+```{r}
+(p <- ggplot(oDat, aes(devStage, geneExp)) + 
+   geom_point())
+```
+
+Split into panels:
+
+```{r}
+(p <- p + facet_wrap(~ probeset))
+(p <- p + aes(color = gType))
+```
+
+Add averages using a summary stat:
+
+```{r}
+(p <- p + stat_summary(fun.y = mean, geom = "point", shape = 4, size = 4))
+```
+
+Density plots
+-------------
+
+Simple density plot two ways:
+
+```{r}
+(p <- ggplot(oDat, aes(geneExp)) + 
+   geom_density())
+(p <- ggplot(oDat, aes(geneExp)) + 
+   stat_density(geom = "line", position = "identity"))
+```
+
+To mimic the lattice graphic:
+
+```{r}
+(p <- ggplot(oDat, aes(geneExp)) + 
+   stat_density(geom = "line", position = "identity") + 
+   geom_point(aes(y = 0.05), position = position_jitter(height = 0.005)))
+```
+
+Change the bandwidth of the density plot using `adjust`:
+
+```{r}
+(p <- ggplot(oDat, aes(geneExp)) + 
+   stat_density(geom = "line", position = "identity", adjust = 0.5) + 
+   geom_point(aes(y = 0.05), position = position_jitter(height = 0.005)))
+```
+
+Add facets:
+
+```{r}
+(p <- p + facet_wrap(~ gType))
+```
+
+Or colours:
+
+```{r}
+(p <- ggplot(oDat, aes(geneExp, color = gType)) + 
+   stat_density(geom = "line", position = "identity") + 
+   geom_point(aes(y = 0.05), position = position_jitter(height = 0.005)))
+```
+
+
+
+
+
+
+
+
 Take-home Problem
------------------
+=================
 
 > The full photoRec dataset has 39 samples and 29949 probesets. Choose 2 ... or 20 ... or 200 random probesets/genes and look for gene expression differences between the two genotypes, wild type versus knockout. Make use of the graphing techniques discussed this week such as scatter plots, data heatmaps, correlation heatmaps, etc. Share questions, success, failure on the Google group.
 

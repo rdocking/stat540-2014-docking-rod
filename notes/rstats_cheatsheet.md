@@ -16,8 +16,70 @@ library(MASS)
 ```
 
 
+Constants
+---------
 
-Helper Functions
+
+```r
+LETTERS
+```
+
+```
+##  [1] "A" "B" "C" "D" "E" "F" "G" "H" "I" "J" "K" "L" "M" "N" "O" "P" "Q"
+## [18] "R" "S" "T" "U" "V" "W" "X" "Y" "Z"
+```
+
+```r
+letters
+```
+
+```
+##  [1] "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q"
+## [18] "r" "s" "t" "u" "v" "w" "x" "y" "z"
+```
+
+```r
+month.abb
+```
+
+```
+##  [1] "Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov"
+## [12] "Dec"
+```
+
+```r
+month.name
+```
+
+```
+##  [1] "January"   "February"  "March"     "April"     "May"      
+##  [6] "June"      "July"      "August"    "September" "October"  
+## [11] "November"  "December"
+```
+
+```r
+pi
+```
+
+```
+## [1] 3.142
+```
+
+
+Useful for generating lists like so:
+
+
+```r
+(names <- seq_along(letters[1:10]))
+```
+
+```
+##  [1]  1  2  3  4  5  6  7  8  9 10
+```
+
+
+
+Useful Functions
 ----------------
 
 `apropos` - Find objects by partial name
@@ -41,6 +103,38 @@ apropos("^geom_")
 ## [31] "geom_segment"    "geom_smooth"     "geom_step"      
 ## [34] "geom_text"       "geom_tile"       "geom_violin"    
 ## [37] "geom_vline"
+```
+
+
+`head`, `tail` - return the first or last part of an object
+
+
+```r
+head(letters)
+```
+
+```
+## [1] "a" "b" "c" "d" "e" "f"
+```
+
+```r
+tail(letters)
+```
+
+```
+## [1] "u" "v" "w" "x" "y" "z"
+```
+
+
+`which` - Give the TRUE indices of a logical object, allowing for array indices.
+
+
+```r
+which(c(TRUE, FALSE))
+```
+
+```
+## [1] 1
 ```
 
 

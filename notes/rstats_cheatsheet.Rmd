@@ -7,21 +7,66 @@ Commonly Used Libraries
 `lattice` - Lattice Graphics
 `ggplot2` - Grammar of Graphics
 `MASS` - Support datasets for Venables and Ripley text
+`stats` - Common statistical functions
 
 ```{r}
 library(lattice)
 library(ggplot2)
 library(MASS)
+library(stats)
+```
+
+Constants
+---------
+
+```{r}
+LETTERS
+letters
+month.abb
+month.name
+pi
+```
+
+Useful for generating lists like so:
+
+```{r}
+(names <- seq_along(letters[1:10]))
 ```
 
 
-Helper Functions
+Useful Functions
 ----------------
 
 `apropos` - Find objects by partial name
 
 ```{r}
 apropos("^geom_")
+```
+
+`head`, `tail` - return the first or last part of an object
+
+```{r}
+head(letters)
+tail(letters)
+```
+
+`identical` - test for exact identity
+
+```{r}
+identical(1, 1) # TRUE
+identical(1, 2) # FALSE
+```
+
+`table` - make a contingency table
+
+```{r}
+table(rpois(100, 5))
+```
+
+`which` - Give the TRUE indices of a logical object, allowing for array indices.
+
+```{r}
+which(c(TRUE, FALSE))
 ```
 
 `with` - Evaluate an R expression in an environment constructeed from data
