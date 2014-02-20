@@ -647,17 +647,109 @@ Or colours:
    geom_point(aes(y = 0.05), position = position_jitter(height = 0.005)))
 ```
 
+Boxplot
+-------
 
+Simple boxplot:
 
+```{r}
+(p <- ggplot(oDat, aes(devStage, geneExp)) + 
+   geom_boxplot())
+```
 
+Add facets as before:
 
+```{r}
+(p <- p + facet_wrap(~ gType))
+```
 
+Vioon plots!
 
+```{r}
+(p <- ggplot(oDat, aes(devStage, geneExp)) + 
+   geom_violin())
+```
+
+Overplotting and plot matrix
+----------------------------
+
+Load the whole dataset and the field descriptions:
+
+```{r}
+prDat <- read.table("../../../stat540_2014/examples/photoRec/data/GSE4051_data.tsv")
+str(prDat, max.level = 0)
+prDes <- readRDS("../../../stat540_2014/examples/photoRec/data/GSE4051_design.rds")
+str(prDes)
+```
+
+Pick two random samples:
+
+```{r}
+set.seed(2)
+(yo <- sample(1:ncol(prDat), size = 2))
+bDat <- data.frame(y = prDat[[yo[1]]], z = prDat[[yo[2]]])
+str(bDat)
+```
+
+Scatter plot:
+
+```{r}
+(p <- ggplot(bDat, aes(z, y)) + 
+   geom_point())
+```
+
+Use `alpha` to reduce over-plotting:
+
+```{r}
+(p <- ggplot(bDat, aes(z, y)) + 
+   geom_point(alpha = 0.1))
+```
+
+Or a 2D density-plot:
+
+```{r}
+(p <- ggplot(bDat, aes(z, y)) + 
+   stat_density2d())
+```
+
+The same thing, but with a colour gradient:
+
+```{r}
+(p <- ggplot(bDat, aes(z, y)) + 
+   stat_density2d(geom = "tile", contour = F, aes(fill = ..density..)) + 
+   scale_fill_gradient(low = "white", high = "blue"))
+```
+
+*Note: the stat_density2d function calculates the densities, then the aesthetic is mapped to the fill*
+
+And now a hexbin plot:
+
+```{r}
+(p <- ggplot(bDat, aes(z, y)) + 
+   stat_binhex())
+```
+
+For pairwise plots, use plotmatrix. First select more random samples:
+
+```{r}
+set.seed(3)
+(yo <- sample(1:ncol(prDat), size = 4))
+pairDat <- subset(prDat, select = yo)
+str(pairDat)
+```
+
+Then plot:
+
+```{r}
+(p <- plotmatrix(pairDat) + 
+   stat_binhex())
+```
 
 Take-home Problem
 =================
 
 > The full photoRec dataset has 39 samples and 29949 probesets. Choose 2 ... or 20 ... or 200 random probesets/genes and look for gene expression differences between the two genotypes, wild type versus knockout. Make use of the graphing techniques discussed this week such as scatter plots, data heatmaps, correlation heatmaps, etc. Share questions, success, failure on the Google group.
+
 
 
 
