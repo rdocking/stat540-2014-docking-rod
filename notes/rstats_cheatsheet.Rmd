@@ -10,6 +10,8 @@ Online References
 
 [An R Introduction to Statistics](http://www.r-tutor.com)
 
+[R-seek](http://www.rseek.org)
+
 Commonly Used Libraries
 -----------------------
 
