@@ -65,3 +65,12 @@ ttRes$p.value
 
 *Next: You try: draw a different gene at random or pick one for biological interest and look up the Affy probe ID. Use the t test, with and without the common variance assumption, the Wilcoxon, and/or the Kolmogorov-Smirnov test to assess differential expression. Can you pull test statistics and/or p-values from the different approaches into an common object, like a readable table? Are you getting the same message from the various approaches? Hint: wilcox.test(), ks.test().*
 
+Pick a different gene randomly:
+
+```{r}
+set.seed(1124)
+(theGene <- sample(1:nrow(prDat), 1))
+```
+
+
+

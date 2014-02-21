@@ -1,6 +1,11 @@
 R Cheatsheet
 ============
 
+Online References
+-----------------
+
+[An R Introduction to Statistics](http://www.r-tutor.com)
+
 Commonly Used Libraries
 -----------------------
 
