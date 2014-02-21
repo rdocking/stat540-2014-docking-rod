@@ -4,6 +4,10 @@ R Cheatsheet
 Online References
 -----------------
 
+[Quick-R](http://www.statmethods.net)
+
+[Cookbook for R](http://www.cookbook-r.com)
+
 [An R Introduction to Statistics](http://www.r-tutor.com)
 
 Commonly Used Libraries
