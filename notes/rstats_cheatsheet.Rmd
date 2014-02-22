@@ -15,27 +15,21 @@ Online References
 Commonly Used Libraries
 -----------------------
 
+`ggplot2` - Grammar of Graphics plotting
 `lattice` - Lattice Graphics
-`ggplot2` - Grammar of Graphics
 `MASS` - Support datasets for Venables and Ripley text
+`plyr` - split, apply, recombine
 `stats` - Common statistical functions
-
-```{r}
-library(lattice)
-library(ggplot2)
-library(MASS)
-library(stats)
-```
 
 Constants
 ---------
 
 ```{r}
-LETTERS
-letters
-month.abb
-month.name
-pi
+LETTERS # A B C ...
+letters # a b c ...
+month.abb # "Jan" "Feb" "Mar" ...
+month.name # "January" "February" "March" ...
+pi # 3.141593
 ```
 
 Useful Functions
@@ -49,6 +43,7 @@ Useful Functions
 `head` - return the first part of an object
 `identical` - test for exact identity
 `nrow`, `ncol` - the number of rows or columns
+`round(x, digits = 0)` - round numbers
 `subset` - return subsets of vectors, matrices or data frames which meet conditions
 `t` - transpose
 `table` - make a contingency table
@@ -61,3 +56,12 @@ Statistical Tests
 
 `t.test` - Performs one and two sample t-tests on vectors of data.
 
+User-defined Functions
+----------------------
+
+```{r}
+myfunction <- function(arg1, arg2, ... ){
+statements
+return(object)
+}
+```

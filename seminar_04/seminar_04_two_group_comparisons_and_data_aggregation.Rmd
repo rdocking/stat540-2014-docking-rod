@@ -377,3 +377,112 @@ t.test(gExp ~ gType, someDat)
 
 ### The `plyr` package
 
+*I've worked throught the data aggregation seminar, so plyr is available and loaded*
+
+> Since our input, miniDat, is a data.frame, we will use functions that start with d. What do we want to get back, if anything? If we are happy to watch the t test results fly by on the screen, we can use d_ply():
+
+```{r}
+d_ply(miniDat, ~ gene, function(x) t.test(gExp ~ gType, x), .print = TRUE)
+```
+
+* Take miniData dataframe, split by gene, apply a t-test on gExp by gType to each subset*
+
+> That's not so helpful: the results aren't labelled by probeset and whiz by. In real life, you will want these results for further processing, e.g. writing to file or presenting in a table. We know that t.test() returns a list, so we can use dlply() to retain everything in a new list with one component per probeset:
+
+```{r}
+ttRes <- dlply(miniDat, ~ gene, function(x) t.test(gExp ~ gType, x))
+names(ttRes)
+ttRes[["1454696_at"]]
+```
+
+> We could then process this list further with plyr functions that start with l. If we knew in advance that we only wanted, say, the test statistic and the p-value, here's how we go after that directly via ddply():
+
+```{r}
+ttRes <- ddply(miniDat, ~ gene, function(z) {
+  zz <- t.test(gExp ~ gType, z)
+  round(c(tStat = zz$statistic, pVal = zz$p.value), 4)
+})
+ttRes
+```
+
+> We've now conducted two group comparisons for all 6 genes at once without ever writing a top-level for loop. Use data aggregation functions! Long-term, I strongly recommend use of plyr over the built-in apply() functions, due to its logical and very general framework.
+
+### Ideas for take-home work
+
+> In our last example, can you edit the inner function to use the Wilcoxon or KS test? Or maybe do the t test, the Wilcoxon, and the KS test and return all 3 p-values?
+
+From earlier, call signatures for the other two tests:
+
+```{r}
+(wilcoxRes <- wilcox.test(gExp ~ gType, pDat, exact = FALSE))
+wt <- subset(pDat, gType == 'wt')
+ko <- subset(pDat, gType == 'NrlKO')
+(ksRes <- ks.test(wt$gExp, ko$gExp, exact = FALSE))
+```
+
+Try the wilcoxon with ddply:
+
+```{r}
+wilcox <- function(x){
+  res <- wilcox.test(gExp ~ gType, x, exact = FALSE)
+  return(c(wStat = res$statistic, pVal = res$p.value))
+}
+wilcoxRes <- ddply(miniDat, ~ gene, wilcox)
+wilcoxRes
+```
+
+Scale up to 100 genes:
+
+```{r}
+set.seed(987)
+(keepGenes <- sample(rownames(prDat), 100))
+```
+
+Re-shape as before:
+
+```{r}
+miniDat <- subset(prDat, rownames(prDat) %in% keepGenes)
+miniDat <- data.frame(gExp = as.vector(t(as.matrix(miniDat))),
+                      gene = factor(rep(rownames(miniDat), each = ncol(miniDat)),
+                                    levels = keepGenes))
+miniDat <- suppressWarnings(data.frame(prDes, miniDat))
+str(miniDat)
+```
+
+Run our ddply t-tester as before, but with 100 genes:
+
+```{r}
+ttRes <- ddply(miniDat, ~ gene, function(z) {
+  zz <- t.test(gExp ~ gType, z)
+  round(c(tStat = zz$statistic, pVal = zz$p.value), 4)
+})
+ttRes
+```
+
+> Make a numeric matrix with p-values for many genes (= rows) for various two-group tests. Scatterplot them against each other. Are the p-values as similar as you'd expect? Do you need to log transform the axes to get more insight?
+
+Get p-values for all the genes in prDat:
+
+```{r}
+skinnyDat <- data.frame(gExp = as.vector(t(as.matrix(prDat))),
+                      gene = factor(rep(rownames(prDat), each = ncol(prDat))))
+skinnyDat <- suppressWarnings(data.frame(prDes, skinnyDat))
+ttRes <- ddply(skinnyDat, ~ gene, function(z) {
+  zz <- t.test(gExp ~ gType, z)
+  round(c(tStat = zz$statistic, pVal = zz$p.value), 4)
+})
+# ttRes - don't need to re-calculate this for the html report
+```
+
+Convert to a matrix:
+
+```{r}
+pMat <- as.matrix(ttRes$pVal)
+str(pMat)
+```
+
+Continuing on to seminar 05...
+
+
+
+
