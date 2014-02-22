@@ -111,4 +111,46 @@ stripplot(gExp ~ devStage | gene, jDat,
           auto.key = TRUE, type = c('p', 'a'), grid = TRUE)
 ```
 
-The plot looks similar, although the colours and facetting are different. Most likely some sort of `lattice` option I'm missing/
+The plot looks similar, although the colours and facetting are different. Most likely some sort of `lattice` option I'm missing.
+
+Write a function to stripplot a mini-dataset
+--------------------------------------------
+
+> You will probably make lots of these plots. Why not write a function for this? You've already got the code you need above, but you are welcome to use slightly different arguments or make it easier to specify various aspects of the figure 'on the fly'. 
+
+OK, simplest version to wrap the above call in a function:
+
+```{r}
+makeStripplot <- function(x, ...){
+  stripplot(gExp ~ devStage | gene, x,
+          group = gType, jitter.data = TRUE,
+          auto.key = TRUE, type = c('p', 'a'), grid = TRUE, 
+          ...)
+}
+```
+
+Try it out:
+
+```{r}
+makeStripplot(jDat)
+```
+
+It works! Go back and modify to allow other arguments...
+
+```{r}
+makeStripplot(jDat, pch = 17, cex = 3)
+```
+
+*Note: to do this, I had to add the special argument `...` to* **both** *the function header and the place within the function that required the extra arguments*
+
+> You can use both of your functions together and create a minidatset and plot it all at once:
+
+```{r}
+makeStripplot(newDat <- prepareData("1456341_a_at"))
+str(newDat)
+head(newDat)
+```
+
+Do a two-sample t-test
+----------------------
+
