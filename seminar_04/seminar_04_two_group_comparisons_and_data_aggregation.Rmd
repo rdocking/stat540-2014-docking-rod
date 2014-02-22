@@ -125,7 +125,7 @@ Data Aggregation digression
 ### Install and load `plyr`, and the gapminder data set
 
 ```{r}
-install.packages("plyr", dependencies = TRUE)
+#install.packages("plyr", dependencies = TRUE)
 library(plyr)
 gdURL <- "http://www.stat.ubc.ca/~jenny/notOcto/STAT545A/examples/gapminder/data/gapminderDataFiveYear.txt"
 gDat <- read.delim(file = gdURL)
@@ -237,6 +237,143 @@ print(foo, type = "html", include.rownames = FALSE)
 Back to the Data Aggregation Seminar
 ------------------------------------
 
+### `apply()` for computing on rows and columns of matrices
 
+Load back the `photoRec` data:
 
+```{r}
+kDat <- readRDS("../../../stat540/stat540_2014/examples/photoRec/data/GSE4051_MINI.rds")
+kMat <- as.matrix(kDat[c('crabHammer', 'eggBomb', 'poisonFang')])
+str(kMat)
+```
+
+Compute medians by hand and with `apply()`:
+
+```{r}
+median(kMat[ , 1]) # by column number
+median(kMat[ , 'eggBomb']) # or by column name
+```
+
+With `apply()`:
+
+```{r}
+apply(kMat, 2, median) # input matrix, '2' for columns (1 is rows), function to apply
+?apply
+apply(kMat, 1, median)
+```
+
+Send extra arguments to a function:
+
+```{r}
+apply(kMat, 2, quantile, probs = 0.5)
+apply(kMat, 2, quantile, probs = c(0.25, 0.75))
+apply(kMat, 2, quantile, probs = c(0.25, 0.5, 0.75))
+```
+
+> Let's take the minimum gene expression for each sample, across these three genes. Then let's determine which gene contributed that maximum value.
+
+*Should be 'minimum'*
+
+```{r}
+apply(kMat, 1, min)
+colnames(kMat)[apply(kMat, 1, which.min)]
+```
+
+*New function here: `which.min`*
+
+> Computing row- and column-wise sums and means is such an important special case that there are purpose-built and fast functions for this that I recommend you use when relevant.
+
+```{r}
+rowSums(kMat) #see also rowSums, colMeans, colSums
+all.equal(rowSums(kMat), apply(kMat, 1, sum))
+colMeans(kMat)
+all.equal(colMeans(kMat), apply(kMat, 2, mean))
+```
+
+*Note: the above code is just showing that `rowSums` and `colMeans` give the same output as the `apply` results*
+
+Compare `rowSums` and `apply` to a for loop:
+
+```{r}
+jRowSums <- rowSums(prDat)
+jRowSums <- apply(prDat, 1, sum)
+prMat <- as.matrix(prDat) # must have an actual matrix
+jRowSums <- rep(NA, nrow(prDat)) # must initialize a receptacle
+for(i in 1:nrow(prDat)) {
+   jRowSums[i] <- sum(prMat[i, ])
+}
+```
+
+### Computing on groups of observations with `aggregate()`
+
+> More typical -- and conceptually trickier -- than the row- and column-wise operations above are operations on groups of observations, where the groups are induced by the levels of some factor (or combinations of multiple factors). We re-focus on data.frames, which is our go-to data receptacle.
+
+> Let's compute on a quantitative variable, based on the levels of a factor using the built-in function aggregate(). Specifically, let's compute average expression of eggBomb for different levels of devStage.
+
+```{r}
+aggregate(eggBomb ~ devStage, kDat, FUN = mean)
+```
+
+> The call has familiar elements: a formula y ~ x reminiscent of other modelling and graphing calls, a data.frame where the variables are, and a function to apply. Read the documentation to learn more.
+
+> We can split the data into groups based on a combination of factors.
+
+```{r}
+aggregate(eggBomb ~ gType * devStage, kDat, FUN = mean)
+```
+
+> We are not limited to computing a single value for each group. Although it's silly with such a small dataset, we can use range() to report the min and max.
+
+```{r}
+aggregate(eggBomb ~ gType * devStage, kDat, FUN = range)
+```
+
+### Two sample tests -- a handful of genes
+
+> Let's grab the data from 6 genes. I've picked them for you: 3 are interesting ('hits'), 3 are not. I also reshape the data to be tall and skinny, which is generally a good policy and allows us to keep learning more about data aggregation.
+
+```{r}
+# Select six genes
+keepGenes <- c("1431708_a_at", "1424336_at", "1454696_at",
+               "1416119_at", "1432141_x_at", "1429226_at" )
+# Subset the data for juse those genes from the larger dataset using %in%
+# The data is 'short and wide' at this point
+miniDat <- subset(prDat, rownames(prDat) %in% keepGenes)
+# Re-shape the data frame to be long and skinny
+miniDat <- data.frame(gExp = as.vector(t(as.matrix(miniDat))),
+                      gene = factor(rep(rownames(miniDat), each = ncol(miniDat)),
+                                    levels = keepGenes))
+# Add the new miniDat onto the field descriptions data frame
+miniDat <- suppressWarnings(data.frame(prDes, miniDat))
+str(miniDat)
+```
+
+> Let's plot to make sure we have successfully gotten 3 clear 'hits' and 3 clear boring genes, as promised.
+
+```{r}
+stripplot(gType ~ gExp | gene, miniDat,
+          scales = list(x = list(relation = "free")),
+          group = gType, auto.key = TRUE)
+```
+
+> Smells "right": bottom row consists of 3 'hits', top row holds the boring genes.
+
+> Let's use data aggregation techniques to conduct some two group comparisons for each of these 6 genes. Recall the syntax of the two-sample t-test for one gene:
+
+```{r eval=FALSE}
+t.test(gExp ~ gType, someDat)
+```
+
+> Conceptually, we want to make a sub-data.frame for each gene and provide in the place of someDat in a t test call like above. Sometimes that is a useful first step, when building up a data aggregation task. Walk before you run.
+
+```{r}
+someDat <- droplevels(subset(miniDat, gene == keepGenes[1]))
+t.test(gExp ~ gType, someDat)
+```
+
+* Note: new function `droplevels`*
+
+> How do we scale this up to all 6 genes? We have now outgrown the capability of `aggregate()`. If we restrict ourselves to the built-in functions, we'd need to look at functions like `tapply()`, `split()`, and `by()`. However I think it's the right time to start using plyr.
+
+### The `plyr` package
 
