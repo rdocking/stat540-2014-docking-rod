@@ -38,56 +38,26 @@ month.name
 pi
 ```
 
-Useful for generating lists like so:
-
-```{r}
-(names <- seq_along(letters[1:10]))
-```
-
-
 Useful Functions
 ----------------
 
-`apropos` - Find objects by partial name
-
-```{r}
-apropos("^geom_")
-```
-
-`head`, `tail` - return the first or last part of an object
-
-```{r}
-head(letters)
-tail(letters)
-```
-
+`aggregate` - compute summary statistics of data subsets
+`apply` - apply functions over array margins
+`apropos` - find objects by partial name
+`droplevels` - drop unused levels from a factor or, more commonly, from factors in a data frame.
+`c` - combine values into a vector or list
+`head` - return the first part of an object
 `identical` - test for exact identity
-
-```{r}
-identical(1, 1) # TRUE
-identical(1, 2) # FALSE
-```
-
+`nrow`, `ncol` - the number of rows or columns
+`subset` - return subsets of vectors, matrices or data frames which meet conditions
+`t` - transpose
 `table` - make a contingency table
-
-```{r}
-table(rpois(100, 5))
-```
-
+`tail` - return the last part of an object
 `which` - Give the TRUE indices of a logical object, allowing for array indices.
-
-```{r}
-which(c(TRUE, FALSE))
-```
-
 `with` - Evaluate an R expression in an environment constructeed from data
 
-```{r}
-library(MASS)
-with(anorexia, {
-    anorex.1 <- glm(Postwt ~ Prewt + Treat + offset(Prewt),
-                    family = gaussian)
-    summary(anorex.1)
-})
-```
+Statistical Tests
+-----------------
+
+`t.test` - Performs one and two sample t-tests on vectors of data.
 
