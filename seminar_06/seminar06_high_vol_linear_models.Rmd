@@ -200,5 +200,52 @@ row
 
 > Consider the effects associated with developmental stages P2 and P10. Scatterplot the t statistics for the test that the P2 effect is zero against that for P10. Ideally this plot would be a high-volume scatterplot, include an x = y line, and have an aspect ratio of 1 and common axes, but just do your best. Here's what I get:
 
+OK, make new topTables first for each test:
 
+```{r}
+P2Hits <- topTable(wtEbFit, coef = "devStageP2",
+                   number=1000000, genelist=wtEbFit$genes, adjust.method="BH",
+                   sort.by="none", resort.by=NULL, p.value=1, lfc=0, confint=FALSE)
+P10Hits <- topTable(wtEbFit, coef = "devStageP10",
+                   number=1000000, genelist=wtEbFit$genes, adjust.method="BH",
+                   sort.by="none", resort.by=NULL, p.value=1, lfc=0, confint=FALSE)
+```
+
+Then plot the P2 t-statistic against the P10 t-statistic:
+
+```{r}
+p2_v_p10 <- data.frame(P2Hits$t, P10Hits$t)
+str(p2_v_p10)
+```
+
+```{r}
+p <- ggplot(p2_v_p10, aes(P2Hits.t, P10Hits.t))
+p <- p + geom_point(alpha=0.3)
+p <- p + geom_abline(slope=1)
+p <- p + geom_density2d()
+p
+```
+
+Try plotting a few different ways:
+
+```{r}
+p <- ggplot(tTable, aes(devStageP2, devStageP10))
+p <- p + stat_bin2d()
+p <- p + geom_abline(slope=1)
+p
+```
+
+```{r}
+p <- ggplot(tTable, aes(devStageP2, devStageP10))
+p <- p + stat_binhex()
+p <- p + geom_abline(slope=1)
+p
+```
+
+> Create a densityplot of the associated adjusted p-values, so you can get a sense of which developmental stage, P2 or P10, is more clearly distinguished from baseline E16.
+
+
+```{r}
+
+```
 
