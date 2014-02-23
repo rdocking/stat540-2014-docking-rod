@@ -20,6 +20,7 @@ biocLite("statmod")
 library(limma)
 library(lattice)
 library(ggplot2)
+library(knitr)
 ```
 
 > Load the photoRec dataset:
@@ -52,14 +53,152 @@ makeStripplot <- function(x, ...){
 }
 makeggStripplot <- function(x){
   p <- ggplot(x, aes(factor(devStage), gExp, colour=gType, group=gType))
-  p <- p + geom_point(size=5) + facet_grid(. ~ gene)
+  p <- p + geom_point(size=5) + facet_wrap(~ gene, ncol=2)
   p <- p + stat_summary(fun.y = mean, geom="line")
-  p <- p + scale_colour_brewer(palette='Set1')
+  p <- p + scale_colour_brewer(palette='Dark2')
   p
 }
 ```
 
 The difficulty in estimating gene-wise variance
 -----------------------------------------------
+
+> The lmFit function from limma is arguably your main workhorse function for fitting a common linear model to the data for a very large number of genes. It has at least two strengths to recommend it:
+
+> - It does this in a computationally efficient way, i.e. better than you writing a top-level for() loop and probably even better than pursuing an apply()-type strategy.
+> - It borrows strength across the large number of genes (= datasets) to moderate the gene-wise estimate of error variance.
+
+> Before we dive in and start using limma with the photoRec dataset, let's do a small simulation to illustrate how lousy variance estimates can be when the number of samples is small.
+
+> Let's simulate data for 1000 genes. For each gene, we get 3 observations from a normal distribution with mean 0 and variance 1. We generate the data for each gene independent of the others.
+
+```{r}
+m <- 1000
+n <- 3
+x <- matrix(rnorm(m * n), nrow = m)
+```
+
+> Let's take the observed gene-wise variances. Yes, folks, we are estimating variance with samples of size 3. People do this all the time -- remember the video? We inspect them a bit numerically and graphically.
+
+```{r}
+obsVars <- apply(x, 1, var)
+summary(obsVars)
+mean(obsVars < 1/3)
+densityplot(~obsVars, n = 200)
+```
+
+> Notice how many of the observed variances are freakishly small (and freakishly large!), even though they are indeed equal to 1 "on average". For example, we see that at least a quarter of the genes appear to exhibit a sample variance that is less than one-third the true variance. This can wreak havoc with statistical inference, such as t-statistics. This is what limma -- or the statistical methods it embodies, actually -- is designed to combat.
+
+> Optional take-home exercise: Make the above simulation more realistic with two (or more) groups, different data-generating means and group differences, different data-generating gene-wise variances, etc.
+
+Fit a linear model: explain gene expression in the wild type mice as a function of developmental stage (one-way ANOVA)
+-----------------------------------
+
+Let's just work with the wild type data.
+
+```{r}
+wtDes <- subset(prDes, gType == "wt")
+str(wtDes)
+```
+
+```{r}
+wtDat <- subset(prDat, select = prDes$gType == "wt")
+str(wtDat, max.level = 0)
+```
+
+> Before we can use limma we must make our design matrix. Let's accept the default "ref + treatment effects" scheme for handling the devStage factor. I encourage you to inspect the design matrix and confirm it's what you expect.
+
+```{r}
+wtDesMat <- model.matrix(~devStage, wtDes)
+str(wtDesMat)
+```
+
+```{r results='asis'}
+kable(wtDesMat, format = "markdown")
+```
+
+... looks reasonable.
+
+> Now we will fit the model, for all probes at once, and use eBayes() to moderate the estimated error variances:
+
+```{r}
+wtFit <- lmFit(wtDat, wtDesMat)
+wtEbFit <- eBayes(wtFit)
+```
+
+> The first thing we might ask is "which genes show differential expression over the course of development"? This can be addressed with an overall F test for the model. In the language used in lecture, we will compare a "big" model to a "small" model, where the "big" model includes a mean parameter (or effect) for each level of devStage and the "small" model includes a single mean parameter, e.g. an intercept. You might expect this to be the F test performed by topTable() by default, i.e. when no specific coefficients or contrasts are given to the coef argument ...
+
+```{r}
+topTable(wtEbFit)
+```
+
+> You'll see that, by default, `topTable()` reports the top 10 hits. But let's take more care and specify explicitly the coefficients we want to test for equality with zero. Recall that one can specify these by number but I recommend doing this by name.
+
+```{r eval=FALSE}
+topTable(wtEbFit, coef = 2:5)  # cryptic! error-prone!
+```
+
+```{r}
+colnames(coef(wtEbFit))  # remind yourself of the coef names
+(dsHits <- topTable(wtEbFit, coef = grep("devStage", colnames(coef(wtEbFit)))))
+```
+
+> You will notice that these are not the same hits we got with our first call to topTable(). Compare, e.g., the Affy IDs for the top hits and/or look at the typical F statistic magnitudes. And so we learn that you really must use the coef argument (or a contrasts workflow in more complicated settings) to explicitly define what you regard as a hit.
+
+> Use the hit list you stored above and your functions for extracting and plotting data to produce this plot for hits 3, 6, and 9 on the list.
+
+```{r}
+keepers <- c('1425222_x_at', '1422929_s_at', '1451617_at')
+kDat  <- subset(prepareData(keepers), gType == 'wt')
+makeStripplot(kDat)
+makeggStripplot(kDat)
+```
+
+> Does it look plausible to you that -- using only wild type data -- these probes show the most compelling evidence for expression change over development? Note: I have redefined my data extraction and plotting functions to include only the wild type data. You can do that or not, as long as you can remember that all of today's models only work with wild type data.
+
+> Optional exercise: use lm() on one or all 3 of these probes and check if the F stats and p-values are similar. Don't expect exact equality because you must remember that limma has moderated the estimated error variance.
+
+```{r}
+keepers <- c('1425222_x_at')
+kDat  <- subset(prepareData(keepers), gType == 'wt')
+mFit <- lm(formula = gExp ~ devStage, data = kDat)
+summary(mFit)
+```
+
+From the `limma` model, the line of interest was:
+
+`             X.Intercept. devStageP2 devStageP6 devStageP10 devStage4_weeks AveExpr        F      P.Value`
+
+`1425222_x_at    0.88200    0.79950     1.54875         5.53175 7.02815 173.3572 4.348283e-14 4.340891e-10`
+
+So, the estimates for the model parameters are similar, but the p-value and F-statistic are a bit different.
+
+Be the boss of topTable()
+-------------------------
+
+> You need to learn to take control of topTable() by using various arguments to get the hits you want in the order you want. Furthermore, you should familiarize yourself with the output it returns, so you are comfortable extracting the output that you need.
+
+> How many probes have Benjamini-Hochberg ("BH") adjusted p-values for the F test conducted above that are less than 1e-05?
+> My answer: 350 probes.
+
+Modify the earlier call and add in all the options to play around with:
+
+```{r}
+tTable <- topTable(wtEbFit, coef = grep("devStage", colnames(coef(wtEbFit))),
+                   number=100000, genelist=wtEbFit$genes, adjust.method="BH",
+                   sort.by="B", resort.by=NULL, p.value=1e-05, lfc=0, confint=FALSE)
+```
+
+This table now has `r nrow(tTable)` rows in it - matching the expected value.
+
+> What is the 63rd hit on this list? Provide it's Affy ID, F statistic, BH adjusted p-value, and the estimated effect for developmental stage "P6" in that order. Here's what I get:
+
+```{r}
+row <- subset(tTable[63, ], select = c('F', 'adj.P.Val', 'devStageP6'))
+row
+```
+
+> Consider the effects associated with developmental stages P2 and P10. Scatterplot the t statistics for the test that the P2 effect is zero against that for P10. Ideally this plot would be a high-volume scatterplot, include an x = y line, and have an aspect ratio of 1 and common axes, but just do your best. Here's what I get:
+
 
 
