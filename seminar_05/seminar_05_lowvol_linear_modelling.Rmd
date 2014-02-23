@@ -154,3 +154,249 @@ head(newDat)
 Do a two-sample t-test
 ----------------------
 
+> Let's test for a difference in expected gene expression for probeset "1456341_a_at" at developmental stage P2 vs. 4 weeks post-natal (ignoring genotype, i.e. lump the wild types and knockouts together). Let's assume a common variance in the two groups.
+
+> Here's what I get:
+
+```
+## 
+##  Two Sample t-test
+## 
+## data:  gExp by devStage
+## t = -18.84, df = 14, p-value = 2.411e-11
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -4.078 -3.244
+## sample estimates:
+##      mean in group P2 mean in group 4_weeks 
+##                 6.326                 9.987
+```
+
+OK, first I'll try it in a few steps, then try to clean it up.
+
+```{r}
+miniDat <- prepareData(c('1456341_a_at'))
+subminiDat <- subset(miniDat, devStage %in% c('P2', '4_weeks'))
+t.test(gExp ~ devStage, subminiDat)
+```
+
+One more try to clean it up:
+
+```{r}
+t.test(gExp ~ devStage, miniDat, 
+       subset = miniDat$devStage %in% c('P2', '4_weeks'))
+```
+
+Alright! Output is as expected.
+
+Fit a linear model with a categorical covariate
+-----------------------------------------------
+
+> In other words, do "one-way ANOVA".
+> Focus on probeset "1438786_a_at". Here's what the data should look like:
+
+```{r}
+mDat <- prepareData(c('1438786_a_at'))
+```
+
+Try plotting first before fitting the model:
+
+```{r}
+makeStripplot(mDat)
+```
+
+And a ggplot:
+
+```{r}
+p <- ggplot(mDat, aes(factor(devStage), gExp, colour=gType, group=gType))
+p <- p + geom_point() + facet_grid(. ~ gene)
+p <- p + stat_summary(fun.y = mean, geom="line")
+p <- p + scale_colour_brewer(palette='Set1')
+p
+```
+
+
+OK, now I'll use `lm` to fit the model:
+
+```{r}
+mFit <- lm(formula = gExp ~ devStage, data = mDat, 
+    subset = gType == "wt")
+summary(mFit)
+```
+
+Output is as expected - I've got the same fit as in the example.
+
+> Vet your inferential results: does the intercept look plausible given the plot? How about the devStageP2 effect, etc.?
+
+Intercept is `r mFit$coefficients['(Intercept)']` - this looks plausible.
+
+It's also plausible that devStageP2 and devStageP10 are more significant than the other terms - they're farther away from the mean of the others.
+
+Perform inference for a contrast
+--------------------------------
+
+> The "W" shape of the expression profile for "1438786_a_at" means that the expression values for developmental stages P2 and P10 are quite similar. We could formally test whether the P2 and P10 effects are equal or, equivalently, whether their difference is equal to zero.
+
+> First extract the parameter estimates from the linear model you fit above. You did save the fit, right? If not, edit your code to do so and re-run that bit. Hint: the coef() function will pull parameter estimates out of a wide array of fitted model objects in R.
+
+Check out the coefficients:
+
+```{r}
+fCoef <- coef(mFit)
+```
+
+> Now you need to construct the contrast matrix to form the difference between the P2 and P10 effects. I called mine contMat. Hint: it's OK for a matrix to have just one row.
+
+```{r}
+contMat <- matrix(c(0,1,0,-1,0),nrow=1)
+(obsDiff <- contMat %*% coef(mFit))
+```
+
+*Note: this gives the expected result, but I'm still not quite sure how this works here*
+
+> Let's check that this really is the observed difference in sample mean for the wild type mice, P2 vs. P10.
+
+```{r}
+(sampMeans <- aggregate(gExp ~ devStage, mDat, FUN = mean,
+                        subset = gType == "wt"))
+with(sampMeans, gExp[devStage == "P2"] - gExp[devStage == "P10"])
+```
+
+> Yes! Agrees with the observed difference we computed by multiplying our contrast matrix and the estimated parameters. If you don't get agreement, you have a problem ... probably with your contrast matrix.
+
+> Now we need the (estimated) standard error for our contrast. The variance-covariance matrix of the parameters estimated in the original model can be obtained with vcov() and is equal to (XTX)−1σ^2.
+
+```{r}
+vcov(mFit)
+```
+
+> Let's check that this is really true. If we take the diagonal elements and take their square root, they should be exactly equal to the standard errors reported for out original model. Are they?
+
+```{r}
+summary(mFit)$coefficients[ , "Std. Error"]
+sqrt(diag(vcov(mFit)))
+```
+
+> Yes! Note for the future that you can get the typical matrix of inferential results from most fitted model objects for further computing like so:
+
+```{r}
+summary(mFit)$coefficients
+```
+
+> Returning to our test of the P2 vs. P10 contrast, recall that the variance-covariance matrix of a contrast obtained as Cα^ is C(XTX)−1CTσ^2.
+
+```{r}
+(estSe <- contMat %*% vcov(mFit) %*% t(contMat))
+```
+
+> Now we form a test statistic as an observed effect divided by its estimated standard error:
+
+```{r}
+(testStat <- obsDiff/estSe)
+```
+
+> Under the null hypothesis that the contrast equals zero, i.e. there is no true difference in mean for expression at P2 and P10 in wild type mice for this gene, the test statistic has a t distribution with n−p=20−5=15 degrees of freedom. We compute a two-sided p-value and we're done.
+
+```{r}
+2 * pt(abs(testStat), df = df.residual(mFit), lower.tail = FALSE)
+```
+
+> Not surprisingly, this p-value is rather large and we conclude there is no difference.
+
+Fit a linear model with two categorical covariates
+--------------------------------------------------
+
+> Let's focus on probeset "1448690_at". Use your functions to prepare the data and plot it. I'm calling mine oDat.
+
+```{r}
+makeStripplot(oDat <- prepareData("1448690_at"))
+```
+
+Make a ggplot equivalent:
+
+```{r}
+makeggStripplot <- function(x){
+  p <- ggplot(x, aes(factor(devStage), gExp, colour=gType, group=gType))
+  p <- p + geom_point(size=5) + facet_grid(. ~ gene)
+  p <- p + stat_summary(fun.y = mean, geom="line")
+  p <- p + scale_colour_brewer(palette='Set1')
+  p
+}
+makeggStripplot(oDat)
+str(oDat)
+```
+
+> Fit a linear model with covariates gType and devStage and include their interactions. I'm calling mine oFitBig and here's an excerpt of the report you should get.
+
+Build it up from simpler models:
+
+```{r}
+oFitBig <- lm(formula = gExp ~ gType + devStage, data = oDat)
+summary(oFitBig)
+```
+
+This is using `gType` and `devStage` to predict `gExp`, but doesn't include any interaction between the terms.
+
+```{r}
+oFitBig <- lm(formula = gExp ~ gType*devStage, 
+              data = oDat)
+summary(oFitBig)
+```
+
+OK, now we've got the two factors separately as well as their interaction.
+
+```{r}
+summary(oFitBig)$coef
+```
+
+> Vet the results. Is the intercept plausible? How about the various effects? Do the ones with small p-values, e.g. meeting a conventional cut-off of 0.05, look 'real' to you?
+
+- The intercept looks plausible
+- I believe the `gTypeNrlKO` p-value - there's clearly a difference between the two genes independent of devStage.
+- It does look like developmental stages `P6`, `P10` and `4_weeks` are different from the rest
+
+> Fit a related, smaller model with the same covariates, but this time omit the interaction. I'm calling mine oFitSmall and here's an excerpt of the report you should get.
+
+OK, this is what I had before:
+
+```{r}
+oFitSmall <- lm(formula = gExp ~ gType + devStage, data = oDat)
+summary(oFitSmall)
+summary(oFitSmall)$coef
+```
+
+> Now let's determine if the interaction terms are truly necessary. From the plot, the case for interaction seems very weak. This can be assessed with an F test that essentially looks at the reduction in the sum of squared residuals due to using a larger, more complicated model and determines if it is "big enough" given the number of additional parameters used. Recall the anova() function can take two fitted models, one nested within the other, and perform this test. (anova() can also be used on a single model to assess significance of terms, but remember the problem with the standard anova() function and unbalanced data. See references given in lecture for remedies.)
+
+Generate the ANOVA table:
+
+```{r}
+anova(oFitSmall, oFitBig)
+```
+
+> With a p-value awfully close to one, we confirm that, no, there is no evidence for interaction in this particular case.
+
+> If you'd like to get a more exciting result, take a look at probeset "1429225_at". Here are my plots, excerpts from the fitted model reports, and the F test for interaction. See if you can duplicate this.
+
+```{r}
+nDat <- prepareData("1429225_at")
+makeStripplot(nDat)
+makeggStripplot(nDat)
+nFitBig <- lm(formula = gExp ~ gType*devStage, 
+              data = nDat)
+summary(nFitBig)$coef
+nFitSmall <- lm(formula = gExp ~ gType + devStage, data = nDat)
+summary(nFitSmall)$coef
+anova(nFitSmall, nFitBig)
+```
+
+> Not surprisingly, the interaction here is highly statistically significant.
+
+This is confirmed by the F-test in the ANOVA table we produced at the end.
+
+
+
+
+
+
+
+
