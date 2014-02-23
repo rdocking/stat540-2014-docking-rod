@@ -244,8 +244,366 @@ p
 
 > Create a densityplot of the associated adjusted p-values, so you can get a sense of which developmental stage, P2 or P10, is more clearly distinguished from baseline E16.
 
+Put the adjusted p-values in a separate data framed, then `rbind` them:
 
 ```{r}
+density_df_P2 <- data.frame(devStage = "P2", adj.P.Val = P2Hits$adj.P.Val)
+density_df_P10 <- data.frame(devStage = "P10", adj.P.Val = P10Hits$adj.P.Val)
+density_df <- rbind(density_df_P2, density_df_P10)
+```
 
+Now make density plots:
+
+```{r}
+p <- ggplot(density_df, aes(x=adj.P.Val, 
+                            colour=devStage,
+                            fill=devStage))
+p <- p + geom_density(alpha=0.7)
+p <- p + scale_colour_brewer(palette='Accent')
+p <- p + scale_fill_brewer(palette='Accent')
+p
+```
+
+> Is this what you'd expect?
+
+Roughly, yes - more significant p-values on average for the difference between P10 and the start than P2 and the start.
+
+> If you require a BH adjusted p-value less than 1e-03, how many hits do you get for P2? How many for P10? How much overlap is there?
+
+First, get the significant hits for the desired p-value:
+
+```{r}
+p2_sig_hits <- topTable(wtEbFit, coef = "devStageP2",
+                   number=nrow(wtEbFit), genelist=wtEbFit$genes, adjust.method="BH",
+                   sort.by="none", resort.by=NULL, p.value=1e-03, lfc=0, confint=FALSE) 
+p10_sig_hits <- topTable(wtEbFit, coef = "devStageP10",
+                   number=nrow(wtEbFit), genelist=wtEbFit$genes, adjust.method="BH",
+                   sort.by="none", resort.by=NULL, p.value=1e-03, lfc=0, confint=FALSE) 
+```
+
+Actually, I need the larger data frames so the values line up... 
+
+```{r}
+cutoff <- 1e-03
+p2_v_p10 <- data.frame(P2 = P2Hits$adj.P.Val < cutoff,
+                       P10 = P10Hits$adj.P.Val < cutoff)
+head(p2_v_p10)
+```
+
+Then I can make a table:
+
+```{r}
+with(p2_v_p10, table(P2, P10))
+```
+
+*Note that the course version uses a new function, `addmargins`*:
+
+Pretty-print:
+
+```{r results='asis'}
+tbl <- addmargins(with(p2_v_p10, table(P2, P10)))
+kable(tbl, format = "markdown")
+```
+
+> Now just focus on the P10 effect. Create a scatterplot matrix of raw p-values, BH adjusted p-values, and BY p-values.
+
+Get the raw and BH-adjusted p-values from the old data frame:
+
+```{r}
+str(P10Hits)
+```
+
+Calculate the BY-adjusted p-values:
+
+```{r}
+P10Hits_BY <- topTable(wtEbFit, coef = "devStageP10",
+                   number=1000000, genelist=wtEbFit$genes, adjust.method="BY",
+                   sort.by="none", resort.by=NULL, p.value=1, lfc=0, confint=FALSE)
+```
+
+Put them together in a data frame:
+
+```{r}
+p_value_cmp <- data.frame(raw = P10Hits$P.Value, 
+                          BH = P10Hits$adj.P.Val,
+                          BY = P10Hits_BY$adj.P.Val)
+head(p_value_cmp)
+summary(p_value_cmp)
+```
+
+Then do the pair-wise scatterplots:
+
+```{r}
+splom(p_value_cmp,
+      panel = function(x, y, ... ) {
+          panel.xyplot(x, y, pch = ".", ...)
+          panel.abline(a = 0, b = 1, col = "orange")
+      })
+```
+
+Try the ggplot version:
+
+```{r}
+p <- plotmatrix(p_value_cmp) + geom_smooth(method="lm")
+p
+```
+
+... which suggests using `ggpairs` from `GGally`:
+
+```{r}
+library('GGally')
+p <- ggpairs(p_value_cmp)
+p
+```
+
+This takes a while and isn't really that nice.
+
+> Is the relationship between raw and BH p-values what you expect? I'm not sure what to say about the BY p-values. I just wanted us to try at least one different method of p-value adjustment.
+
+Yes - the BH-adjusted values are a bit more conservative overall.
+
+Perform inference for some contrasts
+------------------------------------
+
+> Let's try to distinguish genes that have stable expression at the last three developmental stages (P6, P10, and 4_weeks) from those that do not. If expression doesn't change from P6 to P10 to 4_weeks, then the effects for all 3 of those developmental stages should be the same. That means that the difference between the P10 and P6 effects is zero and ditto for the difference between 4_weeks effect and P10 (or P6, for that matter). Let's form these contrasts.
+
+```{r}
+colnames(wtDesMat)
+(cont.matrix <- makeContrasts(P10VsP6 = devStageP10 - devStageP6, 
+                              fourweeksVsP10 = devStage4_weeks - devStageP10, 
+                              levels = wtDesMat))
+```
+
+Fit a new model using the new contrast matrix:
+
+```{r}
+wtFitCont <- contrasts.fit(wtFit, cont.matrix)
+wtEbFitCont <- eBayes(wtFitCont)
+```
+
+> What does `topTable()` do with our contrasts?
+
+```{r}
+topTable(wtEbFitCont)
+```
+
+> The top hits are probes where there is big change from P6 to P10, from P10 to 4_weeks, or both. Let's check that by plotting the data from the top 4 hits.
+
+```{r}
+keepers <- c('1440645_at', '1416041_at', '1425222_x_at', '1424852_at')
+kDat  <- subset(prepareData(keepers), gType == 'wt')
+makeStripplot(kDat)
+makeggStripplot(kDat)
+```
+
+> So far, so good. These 4 probes show little expression change from P6 to P10 and a strong increase from P10 to 4_weeks. I would like to find some where there's a change in each case but perhaps in opposite direction. Let's press on.
+
+> Let's use decideTests() to adjust the p-values for both contrasts globally, i.e. all together and then threshhold them at a cutoff of 1e-04.
+
+```{r}
+cutoff <- 1e-04
+wtResCont <- decideTests(wtEbFitCont, p.value = cutoff, method = "global")
+summary(wtResCont)
+```
+
+> We see there are 4 probes that go down from P6 to P10 and no hits going the other way. There are 8 probes that go down from P10 to 4_weeks and 46 going the other way. Let's try to pull out various hits and plot their data.
+
+> Here are the 4 that decline from P6 to P10.
+
+```{r}
+(hits1 <- rownames(prDat)[which(wtResCont[, "P10VsP6"] < 0)])
+```
+
+Plot these hits:
+
+```{r}
+kDat  <- subset(prepareData(hits1), gType == 'wt')
+makeStripplot(kDat)
+makeggStripplot(kDat)
+```
+
+> Here are 4 of the 8 that decline from P10 to 4_weeks.
+
+*Note, I'm plotting all 8*
+
+```{r}
+(hits2 <- rownames(prDat)[which(wtResCont[, "fourweeksVsP10"] < 0)])
+kDat  <- subset(prepareData(hits2), gType == 'wt')
+makeStripplot(kDat)
+makeggStripplot(kDat)
+```
+
+> Is there any overlap between these probes?
+
+```{r}
+intersect(hits1, hits2)
+```
+
+> Apparently not.
+
+> Here are 4 of the 46 that increase from P10 to 4_weeks.
+
+```{r}
+(hits3 <- rownames(prDat)[which(wtResCont[, "fourweeksVsP10"] > 0)])
+kDat  <- subset(prepareData(hits3[1:4]), gType == 'wt')
+makeStripplot(kDat)
+makeggStripplot(kDat)
+```
+
+> Is there any overlap between these probes and the previous "down" hits?
+
+```{r}
+intersect(hits1, hits3)
+intersect(hits2, hits3)
+```
+
+> That's disappointing. If I revisit this workflow but make the p-value cutoff less stringent, maybe I can find the gene expression profile I'm looking for.
+
+```{r}
+cutoff <- 0.01
+nHits <- 8
+wtResCont <- decideTests(wtEbFitCont, p.value = cutoff, method = "global")
+summary(wtResCont)
+```
+
+Then plot:
+
+```{r}
+hits1 <- rownames(prDat)[which(wtResCont[, "P10VsP6"] < 0)]
+kDat  <- subset(prepareData(hits1[1:nHits]), gType == 'wt')
+makeStripplot(kDat)
+makeggStripplot(kDat)
+```
+
+For the other effect of interest:
+
+```{r}
+hits2 <- rownames(prDat)[which(wtResCont[, "fourweeksVsP10"] < 0)]
+kDat  <- subset(prepareData(hits2[1:nHits]), gType == 'wt')
+makeStripplot(kDat)
+makeggStripplot(kDat)
+```
+
+And the last one:
+
+```{r}
+hits3 <- rownames(prDat)[which(wtResCont[, "P10VsP6"] > 0)]
+kDat  <- subset(prepareData(hits3[1:nHits]), gType == 'wt')
+makeStripplot(kDat)
+makeggStripplot(kDat)
+```
+
+OK, one more:
+
+```{r}
+hits4 <- rownames(prDat)[which(wtResCont[, "fourweeksVsP10"] > 0)]
+kDat  <- subset(prepareData(hits4[1:nHits]), gType == 'wt')
+makeStripplot(kDat)
+makeggStripplot(kDat)
+```
+
+Venn Diagram:
+
+```{r}
+vennDiagram(wtResCont)
+```
+
+Both effects at the same time:
+
+```{r}
+hits5 <- rownames(prDat)[which(wtResCont[, "P10VsP6"] != 0 & wtResCont[, "fourweeksVsP10"] != 
+    0)]
+kDat  <- subset(prepareData(hits5), gType == 'wt')
+makeStripplot(kDat)
+makeggStripplot(kDat)
+```
+
+One more try:
+
+*this is trying to find a gene where the P10vP6 is >0, and fourweeksvP10 is negative*
+
+```{r}
+hits6 <- rownames(prDat)[which(wtResCont[, "P10VsP6"] > 0 & wtResCont[, "fourweeksVsP10"] < 
+    0)]
+kDat  <- subset(prepareData(hits6), gType == 'wt')
+makeStripplot(kDat)
+makeggStripplot(kDat)
+```
+
+> Take-home exercise: See if you can find one or more probes that have some expression changes up to P6 and then hold steady all the way to 4_weeks. Here's some I found.
+
+OK, first, fit a new model with the desired contrasts:
+
+```{r}
+colnames(wtDesMat)
+(cont.matrix <- makeContrasts(P6VsE16 = devStageP6 - Intercept, 
+                              fourweeksVsP6 = devStage4_weeks - devStageP6, 
+                              levels = wtDesMat))
+```
+
+Fit a new model using the new contrast matrix:
+
+```{r}
+wtFitCont <- contrasts.fit(wtFit, cont.matrix)
+wtEbFitCont <- eBayes(wtFitCont)
+topTable(wtEbFitCont)
+```
+
+Look at some of the top hits to sanity check:
+
+```{r}
+keepers <- c('1438657_x_at', '1423641_s_at', '1438940_x_at', '1454613_at')
+kDat  <- subset(prepareData(keepers), gType == 'wt')
+makeStripplot(kDat)
+makeggStripplot(kDat)
+```
+
+Use decideTests to adjust all the p-values, with a not-so-stringent p cutoff:
+
+```{r}
+cutoff <- 0.01
+wtResCont <- decideTests(wtEbFitCont, p.value = cutoff, method = "global")
+summary(wtResCont)
+```
+
+Looks like a lot of hits, so I'll us a more stringent p-value cutoff...
+
+```{r}
+cutoff <- 1e-07
+wtResCont <- decideTests(wtEbFitCont, p.value = cutoff, method = "global")
+summary(wtResCont)
+```
+
+OK, let's find some genes...
+
+```{r}
+hits <- rownames(prDat)[which(wtResCont[, "P6VsE16"] < 0 & wtResCont[, "fourweeksVsP6"] == 
+    0)]
+kDat  <- subset(prepareData(hits[1:6]), gType == 'wt')
+makeStripplot(kDat)
+makeggStripplot(kDat)
+```
+
+My version might have been too complicated - it looks like I didn't need to re-fit the whole model. Also, I'm not sure I've got the best hits here. Here's the version from the course notes:
+
+```{r}
+(cont.matrix <- makeContrasts(P10VsP6 = devStageP10 - devStageP6, 
+                              fourweeksVsP10 = devStage4_weeks - devStageP10, 
+                              levels = wtDesMat))
+wtFitCont <- contrasts.fit(wtFit, cont.matrix)
+wtEbFitCont <- eBayes(wtFitCont)
+
+lateStuff <- topTable(wtEbFitCont, n = Inf, sort = "none")
+earlyStuff <- topTable(wtEbFit,
+                       coef = grep("devStageP[26]", colnames(coef(wtEbFit))),
+                       n = Inf, sort = "none")
+pVals <-
+  data.frame(earlyStuff = earlyStuff$adj.P.Val,
+             lateStuff = lateStuff$adj.P.Val)
+xyplot(lateStuff ~ earlyStuff, pVals)
+discHits <- with(pVals,
+     which(earlyStuff < quantile(earlyStuff, probs = 0.05) &
+             lateStuff > quantile(lateStuff, probs = 0.95)))
+length(discHits)
 ```
 
