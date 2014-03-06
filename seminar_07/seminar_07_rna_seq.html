@@ -1,139 +1,9 @@
 <!DOCTYPE html>
-<!-- saved from url=(0014)about:internet -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-<meta http-equiv="x-ua-compatible" content="IE=9" >
 
 <title>Seminar 07 - RNA-Seq Analysis</title>
-
-<style type="text/css">
-body, td {
-   font-family: sans-serif;
-   background-color: white;
-   font-size: 12px;
-   margin: 8px;
-}
-
-tt, code, pre {
-   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
-}
-
-h1 { 
-   font-size:2.2em; 
-}
-
-h2 { 
-   font-size:1.8em; 
-}
-
-h3 { 
-   font-size:1.4em; 
-}
-
-h4 { 
-   font-size:1.0em; 
-}
-
-h5 { 
-   font-size:0.9em; 
-}
-
-h6 { 
-   font-size:0.8em; 
-}
-
-a:visited {
-   color: rgb(50%, 0%, 50%);
-}
-
-pre {	
-   margin-top: 0;
-   max-width: 95%;
-   border: 1px solid #ccc;
-   white-space: pre-wrap;
-}
-
-pre code {
-   display: block; padding: 0.5em;
-}
-
-code.r, code.cpp {
-   background-color: #F8F8F8;
-}
-
-table, td, th {
-  border: none;
-}
-
-blockquote {
-   color:#666666;
-   margin:0;
-   padding-left: 1em;
-   border-left: 0.5em #EEE solid;
-}
-
-hr {
-   height: 0px;
-   border-bottom: none;
-   border-top-width: thin;
-   border-top-style: dotted;
-   border-top-color: #999999;
-}
-
-@media print {
-   * { 
-      background: transparent !important; 
-      color: black !important; 
-      filter:none !important; 
-      -ms-filter: none !important; 
-   }
-
-   body { 
-      font-size:12pt; 
-      max-width:100%; 
-   }
-       
-   a, a:visited { 
-      text-decoration: underline; 
-   }
-
-   hr { 
-      visibility: hidden;
-      page-break-before: always;
-   }
-
-   pre, blockquote { 
-      padding-right: 1em; 
-      page-break-inside: avoid; 
-   }
-
-   tr, img { 
-      page-break-inside: avoid; 
-   }
-
-   img { 
-      max-width: 100% !important; 
-   }
-
-   @page :left { 
-      margin: 15mm 20mm 15mm 10mm; 
-   }
-     
-   @page :right { 
-      margin: 15mm 10mm 15mm 20mm; 
-   }
-
-   p, h2, h3 { 
-      orphans: 3; widows: 3; 
-   }
-
-   h2, h3 { 
-      page-break-after: avoid; 
-   }
-}
-
-</style>
 
 <!-- Styles for R syntax highlighter -->
 <style type="text/css">
@@ -143,19 +13,21 @@ hr {
    }
 
    pre .literal {
-     color: rgb(88, 72, 246)
+     color: #990073
    }
 
    pre .number {
-     color: rgb(0, 0, 205);
+     color: #099;
    }
 
    pre .comment {
-     color: rgb(76, 136, 107);
+     color: #998;
+     font-style: italic
    }
 
    pre .keyword {
-     color: rgb(0, 0, 255);
+     color: #900;
+     font-weight: bold
    }
 
    pre .identifier {
@@ -163,7 +35,7 @@ hr {
    }
 
    pre .string {
-     color: rgb(3, 106, 7);
+     color: #d14;
    }
 </style>
 
@@ -173,6 +45,14 @@ var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/<
 hljs.initHighlightingOnLoad();
 </script>
 
+<!-- MathJax scripts -->
+<script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<style type="text/css">
+/Users/rdocking///Users/rdocking/Coding/stat540/markdown-css-themes/swiss.css
+</style>
 
 
 
@@ -258,7 +138,7 @@ str(bamDat)
 ##   .. .. .. .. .. .. ..@ xp_list                    :List of 1
 ##   .. .. .. .. .. .. .. ..$ :&lt;externalptr&gt; 
 ##   .. .. .. .. .. .. ..@ .link_to_cached_object_list:List of 1
-##   .. .. .. .. .. .. .. ..$ :&lt;environment: 0x10adbb9f8&gt; 
+##   .. .. .. .. .. .. .. ..$ :&lt;environment: 0x10905ecd0&gt; 
 ##   .. .. .. .. ..@ ranges         :Formal class &#39;GroupedIRanges&#39; [package &quot;XVector&quot;] with 7 slots
 ##   .. .. .. .. .. .. ..@ group          : int [1:64206] 1 1 1 1 1 1 1 1 1 1 ...
 ##   .. .. .. .. .. .. ..@ start          : int [1:64206] 1 37 73 109 145 181 217 253 289 325 ...
@@ -275,7 +155,7 @@ str(bamDat)
 ##   .. .. .. .. ..@ xp_list                    :List of 1
 ##   .. .. .. .. .. ..$ :&lt;externalptr&gt; 
 ##   .. .. .. .. ..@ .link_to_cached_object_list:List of 1
-##   .. .. .. .. .. ..$ :&lt;environment: 0x10adbb9f8&gt; 
+##   .. .. .. .. .. ..$ :&lt;environment: 0x10905ecd0&gt; 
 ##   .. .. ..@ ranges         :Formal class &#39;GroupedIRanges&#39; [package &quot;XVector&quot;] with 7 slots
 ##   .. .. .. .. ..@ group          : int [1:64206] 1 1 1 1 1 1 1 1 1 1 ...
 ##   .. .. .. .. ..@ start          : int [1:64206] 1 37 73 109 145 181 217 253 289 325 ...
@@ -292,7 +172,7 @@ str(bamDat)
 ##   .. .. .. .. ..@ xp_list                    :List of 1
 ##   .. .. .. .. .. ..$ :&lt;externalptr&gt; 
 ##   .. .. .. .. ..@ .link_to_cached_object_list:List of 1
-##   .. .. .. .. .. ..$ :&lt;environment: 0x10adbb9f8&gt; 
+##   .. .. .. .. .. ..$ :&lt;environment: 0x10905ecd0&gt; 
 ##   .. .. ..@ ranges         :Formal class &#39;GroupedIRanges&#39; [package &quot;XVector&quot;] with 7 slots
 ##   .. .. .. .. ..@ group          : int [1:64206] 1 1 1 1 1 1 1 1 1 1 ...
 ##   .. .. .. .. ..@ start          : int [1:64206] 1 29 57 85 114 144 173 202 230 260 ...
@@ -392,7 +272,7 @@ str(bamDat)
 ##   .. .. .. .. .. .. ..@ xp_list                    :List of 1
 ##   .. .. .. .. .. .. .. ..$ :&lt;externalptr&gt; 
 ##   .. .. .. .. .. .. ..@ .link_to_cached_object_list:List of 1
-##   .. .. .. .. .. .. .. ..$ :&lt;environment: 0x10adbb9f8&gt; 
+##   .. .. .. .. .. .. .. ..$ :&lt;environment: 0x10905ecd0&gt; 
 ##   .. .. .. .. ..@ ranges         :Formal class &#39;GroupedIRanges&#39; [package &quot;XVector&quot;] with 7 slots
 ##   .. .. .. .. .. .. ..@ group          : int [1:56883] 1 1 1 1 1 1 1 1 1 1 ...
 ##   .. .. .. .. .. .. ..@ start          : int [1:56883] 1 37 73 109 145 181 217 253 289 325 ...
@@ -409,7 +289,7 @@ str(bamDat)
 ##   .. .. .. .. ..@ xp_list                    :List of 1
 ##   .. .. .. .. .. ..$ :&lt;externalptr&gt; 
 ##   .. .. .. .. ..@ .link_to_cached_object_list:List of 1
-##   .. .. .. .. .. ..$ :&lt;environment: 0x10adbb9f8&gt; 
+##   .. .. .. .. .. ..$ :&lt;environment: 0x10905ecd0&gt; 
 ##   .. .. ..@ ranges         :Formal class &#39;GroupedIRanges&#39; [package &quot;XVector&quot;] with 7 slots
 ##   .. .. .. .. ..@ group          : int [1:56883] 1 1 1 1 1 1 1 1 1 1 ...
 ##   .. .. .. .. ..@ start          : int [1:56883] 1 37 73 109 145 181 217 253 289 325 ...
@@ -426,7 +306,7 @@ str(bamDat)
 ##   .. .. .. .. ..@ xp_list                    :List of 1
 ##   .. .. .. .. .. ..$ :&lt;externalptr&gt; 
 ##   .. .. .. .. ..@ .link_to_cached_object_list:List of 1
-##   .. .. .. .. .. ..$ :&lt;environment: 0x10adbb9f8&gt; 
+##   .. .. .. .. .. ..$ :&lt;environment: 0x10905ecd0&gt; 
 ##   .. .. ..@ ranges         :Formal class &#39;GroupedIRanges&#39; [package &quot;XVector&quot;] with 7 slots
 ##   .. .. .. .. ..@ group          : int [1:56883] 1 1 1 1 1 1 1 1 1 1 ...
 ##   .. .. .. .. ..@ start          : int [1:56883] 1 29 57 85 114 144 173 202 230 260 ...
@@ -571,9 +451,11 @@ summary(df$chrom)
 
 <h2>Accessing Genome Annotations</h2>
 
+<blockquote>
 <p>Aligned read data is not much use without information about the genome it was aligned to. We will make use of the Drosophila database accessed through R to get some information about the Drosophila genome.</p>
 
 <p>First we will load the genomic database.</p>
+</blockquote>
 
 <pre><code class="r">library(BSgenome.Dmelanogaster.UCSC.dm3)
 </code></pre>
@@ -581,7 +463,9 @@ summary(df$chrom)
 <pre><code>## Loading required package: BSgenome
 </code></pre>
 
+<blockquote>
 <p>Now we can get the length of the chromsomes in the genome.</p>
+</blockquote>
 
 <pre><code class="r">(chrSizes &lt;- seqlengths(Dmelanogaster))
 </code></pre>
@@ -594,22 +478,27 @@ summary(df$chrom)
 ##  29004656
 </code></pre>
 
+<blockquote>
 <p>For the purposes of the seminar, we will only look at one chromosome, chr2L, and find the counts for genes on this chromosome. We use the BioMart functionality of the Ensembl database to retrieve the annotations of Drosophila melagoaster chromosome 2L.</p>
 
 <p>The first step will be to load the <code>biomaRt</code> library and specify that we want the Drospohila database.</p>
+</blockquote>
 
 <pre><code class="r">library(biomaRt)
-
 ensembl &lt;- useMart(&quot;ensembl&quot;, dataset = &quot;dmelanogaster_gene_ensembl&quot;)
 </code></pre>
 
+<blockquote>
 <p>Now we can download the genome annotation data. First we will define a set of fields we are interested for each gene. We will get the ENSEMBl gene ID, the strand the gene is on, the chromosome the gene is on, the start position of the gene on that chromosome and the end position of the gene.</p>
+</blockquote>
 
 <pre><code class="r">annotation.fields &lt;- c(&quot;ensembl_gene_id&quot;, &quot;strand&quot;, &quot;chromosome_name&quot;, &quot;start_position&quot;, 
     &quot;end_position&quot;)
 </code></pre>
 
+<blockquote>
 <p>Now we can download the actual annotation data. Because were are restricting attention to chr2L we will use the <code>filter</code> argument of the <code>getBM</code> function.</p>
+</blockquote>
 
 <pre><code class="r">gene.annotation &lt;- getBM(annotation.fields, mart = ensembl, filters = &quot;chromosome_name&quot;, 
     values = c(&quot;2L&quot;))
@@ -624,7 +513,9 @@ str(gene.annotation)
 ##  $ end_position   : int  9484 21376 25155 24237 65404 71390 76211 77783 87387 102086 ...
 </code></pre>
 
+<blockquote>
 <p>Lets check that we only downloaded annotations for chromosome 2L.</p>
+</blockquote>
 
 <pre><code class="r">levels(as.factor(gene.annotation$chromosome))
 </code></pre>
@@ -632,20 +523,23 @@ str(gene.annotation)
 <pre><code>## [1] &quot;2L&quot;
 </code></pre>
 
+<blockquote>
 <p>Now you&#39;ll notice the chromosome name lacks the &ldquo;chr&rdquo; prefix. This will cause issues as the BAM file we are using has uses the &ldquo;chr&rdquo; prefix to identify chromosomes. To rectify this we will add &ldquo;chr&rdquo; to the annotation data.</p>
+</blockquote>
 
 <pre><code class="r">gene.annotation$chromosome &lt;- paste(&quot;chr&quot;, gene.annotation$chromosome_name, 
     sep = &quot;&quot;)
-
 levels(as.factor(gene.annotation$chromosome))
 </code></pre>
 
 <pre><code>## [1] &quot;chr2L&quot;
 </code></pre>
 
+<blockquote>
 <p>Two R packages, GRanges and IRanges, become handy when dealing with problems in genomics. For instance, they can be used for annotating the genome and storing the data.</p>
 
 <p>Example: annotating all the exons would require storing the information regarding their location. These intervals (the start and end of every exon) can be stored in an IRanges object. GRanges object can also store information regarding chromosome (seqnames) and strand and hence more specific to genomics.</p>
+</blockquote>
 
 <pre><code class="r"># We store the gene annotation information in an IRanges object
 gene.range &lt;- RangedData(IRanges(start = gene.annotation$start_position, end = gene.annotation$end_position), 
@@ -681,9 +575,11 @@ show(gene.range)
 
 <h3>Calculating Coverage</h3>
 
+<blockquote>
 <p>To do a differential expression analysis we will need data about how many reads align to a given gene. We can compute this type of coverage data using the <code>coverage</code> function.</p>
 
 <p>First lets find out how many bases cover each position in every chromosome.</p>
+</blockquote>
 
 <pre><code class="r">(cover &lt;- coverage(bamDatFiltered, width = chrSizes))
 </code></pre>
@@ -718,7 +614,9 @@ show(gene.range)
 ## &lt;2 more elements&gt;
 </code></pre>
 
+<blockquote>
 <p>For differential expression analysis we will need coverage on a per gene basis.</p>
+</blockquote>
 
 <pre><code class="r"># Aggregating the coverage for each gene
 gene.coverage &lt;- aggregate(cover[match(names(gene.range), names(cover))], ranges(gene.range), 
@@ -733,7 +631,9 @@ gene.coverage
 ## [[&quot;chr2L&quot;]] 1 47 0 0 1 6 0 0 8 11 1 1 58 ... 17 16 1 0 0 0 15 4 0 1 0 6 0
 </code></pre>
 
+<blockquote>
 <p>Restricting attention to chr2L.</p>
+</blockquote>
 
 <pre><code class="r"># Note that the number of entities with coverage count on chromosome 2L is
 # equal to the number of genes on chromosome 2L.
@@ -749,7 +649,9 @@ length(gene.coverage[[&quot;chr2L&quot;]])
 <pre><code>## [1] 2986
 </code></pre>
 
+<blockquote>
 <p>Using the coverage and gene annotation data, we can now build a count table and store it in a data frame.</p>
+</blockquote>
 
 <pre><code class="r">countTable &lt;- data.frame(chromosome = gene.range$space, gene_start = start(gene.range$ranges), 
     gene_end = end(gene.range$ranges), strand = gene.range$strand, gene = gene.range$gene, 
@@ -772,6 +674,7 @@ dim(countTable)
 ## 6      chr2L      66584    71390      1 FBgn0067779     6
 </code></pre>
 
+<blockquote>
 <p>Some methods for doing differential expression analysis such as <a href="http://www.bioconductor.org/packages/2.11/bioc/html/edgeR.html">edgeR</a> can work from the raw count data.</p>
 
 <p>Other methods use normalized coverage statistics. The calculated raw number of read counts need to be normalizes for two reasons:</p>
@@ -782,6 +685,7 @@ dim(countTable)
 </ol>
 
 <p>The most widely used normalization value is RPKM defined as the &ldquo;number of Reads Per Kilobase of gene (feature) per Million mapped reads&rdquo; (Mortazavi et al, 2008).</p>
+</blockquote>
 
 <pre><code class="r">countTable &lt;- data.frame(chromosome = gene.range$space, gene_start = start(gene.range$ranges), 
     gene_end = end(gene.range$ranges), strand = gene.range$strand, gene = gene.range$gene, 
@@ -801,13 +705,16 @@ head(countTable)
 
 <h2>Take Home Problem</h2>
 
+<blockquote>
 <p>Create a similar count table for all the exons located on chr2L.</p>
+</blockquote>
 
 <h2>References</h2>
 
+<blockquote>
 <p>This seminar is based on a Bioconductor <a href="http://www.bioconductor.org/packages/2.11/data/experiment/html/RnaSeqTutorial.html">RNA-Seq tutorial</a></p>
+</blockquote>
 
 </body>
 
 </html>
-

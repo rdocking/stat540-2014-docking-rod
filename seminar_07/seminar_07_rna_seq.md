@@ -75,7 +75,7 @@ str(bamDat)
 ##   .. .. .. .. .. .. ..@ xp_list                    :List of 1
 ##   .. .. .. .. .. .. .. ..$ :<externalptr> 
 ##   .. .. .. .. .. .. ..@ .link_to_cached_object_list:List of 1
-##   .. .. .. .. .. .. .. ..$ :<environment: 0x10adbb9f8> 
+##   .. .. .. .. .. .. .. ..$ :<environment: 0x10905ecd0> 
 ##   .. .. .. .. ..@ ranges         :Formal class 'GroupedIRanges' [package "XVector"] with 7 slots
 ##   .. .. .. .. .. .. ..@ group          : int [1:64206] 1 1 1 1 1 1 1 1 1 1 ...
 ##   .. .. .. .. .. .. ..@ start          : int [1:64206] 1 37 73 109 145 181 217 253 289 325 ...
@@ -92,7 +92,7 @@ str(bamDat)
 ##   .. .. .. .. ..@ xp_list                    :List of 1
 ##   .. .. .. .. .. ..$ :<externalptr> 
 ##   .. .. .. .. ..@ .link_to_cached_object_list:List of 1
-##   .. .. .. .. .. ..$ :<environment: 0x10adbb9f8> 
+##   .. .. .. .. .. ..$ :<environment: 0x10905ecd0> 
 ##   .. .. ..@ ranges         :Formal class 'GroupedIRanges' [package "XVector"] with 7 slots
 ##   .. .. .. .. ..@ group          : int [1:64206] 1 1 1 1 1 1 1 1 1 1 ...
 ##   .. .. .. .. ..@ start          : int [1:64206] 1 37 73 109 145 181 217 253 289 325 ...
@@ -109,7 +109,7 @@ str(bamDat)
 ##   .. .. .. .. ..@ xp_list                    :List of 1
 ##   .. .. .. .. .. ..$ :<externalptr> 
 ##   .. .. .. .. ..@ .link_to_cached_object_list:List of 1
-##   .. .. .. .. .. ..$ :<environment: 0x10adbb9f8> 
+##   .. .. .. .. .. ..$ :<environment: 0x10905ecd0> 
 ##   .. .. ..@ ranges         :Formal class 'GroupedIRanges' [package "XVector"] with 7 slots
 ##   .. .. .. .. ..@ group          : int [1:64206] 1 1 1 1 1 1 1 1 1 1 ...
 ##   .. .. .. .. ..@ start          : int [1:64206] 1 29 57 85 114 144 173 202 230 260 ...
@@ -215,7 +215,7 @@ str(bamDatFiltered)
 ##   .. .. .. .. .. .. ..@ xp_list                    :List of 1
 ##   .. .. .. .. .. .. .. ..$ :<externalptr> 
 ##   .. .. .. .. .. .. ..@ .link_to_cached_object_list:List of 1
-##   .. .. .. .. .. .. .. ..$ :<environment: 0x10adbb9f8> 
+##   .. .. .. .. .. .. .. ..$ :<environment: 0x10905ecd0> 
 ##   .. .. .. .. ..@ ranges         :Formal class 'GroupedIRanges' [package "XVector"] with 7 slots
 ##   .. .. .. .. .. .. ..@ group          : int [1:56883] 1 1 1 1 1 1 1 1 1 1 ...
 ##   .. .. .. .. .. .. ..@ start          : int [1:56883] 1 37 73 109 145 181 217 253 289 325 ...
@@ -232,7 +232,7 @@ str(bamDatFiltered)
 ##   .. .. .. .. ..@ xp_list                    :List of 1
 ##   .. .. .. .. .. ..$ :<externalptr> 
 ##   .. .. .. .. ..@ .link_to_cached_object_list:List of 1
-##   .. .. .. .. .. ..$ :<environment: 0x10adbb9f8> 
+##   .. .. .. .. .. ..$ :<environment: 0x10905ecd0> 
 ##   .. .. ..@ ranges         :Formal class 'GroupedIRanges' [package "XVector"] with 7 slots
 ##   .. .. .. .. ..@ group          : int [1:56883] 1 1 1 1 1 1 1 1 1 1 ...
 ##   .. .. .. .. ..@ start          : int [1:56883] 1 37 73 109 145 181 217 253 289 325 ...
@@ -249,7 +249,7 @@ str(bamDatFiltered)
 ##   .. .. .. .. ..@ xp_list                    :List of 1
 ##   .. .. .. .. .. ..$ :<externalptr> 
 ##   .. .. .. .. ..@ .link_to_cached_object_list:List of 1
-##   .. .. .. .. .. ..$ :<environment: 0x10adbb9f8> 
+##   .. .. .. .. .. ..$ :<environment: 0x10905ecd0> 
 ##   .. .. ..@ ranges         :Formal class 'GroupedIRanges' [package "XVector"] with 7 slots
 ##   .. .. .. .. ..@ group          : int [1:56883] 1 1 1 1 1 1 1 1 1 1 ...
 ##   .. .. .. .. ..@ start          : int [1:56883] 1 29 57 85 114 144 173 202 230 260 ...
@@ -409,9 +409,9 @@ summary(df$chrom)
 
 ## Accessing Genome Annotations
 
-Aligned read data is not much use without information about the genome it was aligned to. We will make use of the Drosophila database accessed through R to get some information about the Drosophila genome.
+> Aligned read data is not much use without information about the genome it was aligned to. We will make use of the Drosophila database accessed through R to get some information about the Drosophila genome.
 
-First we will load the genomic database.
+> First we will load the genomic database.
 
 
 ```r
@@ -423,7 +423,7 @@ library(BSgenome.Dmelanogaster.UCSC.dm3)
 ```
 
 
-Now we can get the length of the chromsomes in the genome.
+> Now we can get the length of the chromsomes in the genome.
 
 
 ```r
@@ -440,19 +440,18 @@ Now we can get the length of the chromsomes in the genome.
 ```
 
 
-For the purposes of the seminar, we will only look at one chromosome, chr2L, and find the counts for genes on this chromosome. We use the BioMart functionality of the Ensembl database to retrieve the annotations of Drosophila melagoaster chromosome 2L.
+> For the purposes of the seminar, we will only look at one chromosome, chr2L, and find the counts for genes on this chromosome. We use the BioMart functionality of the Ensembl database to retrieve the annotations of Drosophila melagoaster chromosome 2L.
 
-The first step will be to load the `biomaRt` library and specify that we want the Drospohila database.
+> The first step will be to load the `biomaRt` library and specify that we want the Drospohila database.
 
 
 ```r
 library(biomaRt)
-
 ensembl <- useMart("ensembl", dataset = "dmelanogaster_gene_ensembl")
 ```
 
 
-Now we can download the genome annotation data. First we will define a set of fields we are interested for each gene. We will get the ENSEMBl gene ID, the strand the gene is on, the chromosome the gene is on, the start position of the gene on that chromosome and the end position of the gene.
+> Now we can download the genome annotation data. First we will define a set of fields we are interested for each gene. We will get the ENSEMBl gene ID, the strand the gene is on, the chromosome the gene is on, the start position of the gene on that chromosome and the end position of the gene.
 
 
 ```r
@@ -461,7 +460,7 @@ annotation.fields <- c("ensembl_gene_id", "strand", "chromosome_name", "start_po
 ```
 
 
-Now we can download the actual annotation data. Because were are restricting attention to chr2L we will use the `filter` argument of the `getBM` function.
+> Now we can download the actual annotation data. Because were are restricting attention to chr2L we will use the `filter` argument of the `getBM` function.
 
 
 ```r
@@ -480,7 +479,7 @@ str(gene.annotation)
 ```
 
 
-Lets check that we only downloaded annotations for chromosome 2L.
+> Lets check that we only downloaded annotations for chromosome 2L.
 
 
 ```r
@@ -492,13 +491,12 @@ levels(as.factor(gene.annotation$chromosome))
 ```
 
 
-Now you'll notice the chromosome name lacks the "chr" prefix. This will cause issues as the BAM file we are using has uses the "chr" prefix to identify chromosomes. To rectify this we will add "chr" to the annotation data.
+> Now you'll notice the chromosome name lacks the "chr" prefix. This will cause issues as the BAM file we are using has uses the "chr" prefix to identify chromosomes. To rectify this we will add "chr" to the annotation data.
 
 
 ```r
 gene.annotation$chromosome <- paste("chr", gene.annotation$chromosome_name, 
     sep = "")
-
 levels(as.factor(gene.annotation$chromosome))
 ```
 
@@ -507,9 +505,9 @@ levels(as.factor(gene.annotation$chromosome))
 ```
 
 
-Two R packages, GRanges and IRanges, become handy when dealing with problems in genomics. For instance, they can be used for annotating the genome and storing the data.
+> Two R packages, GRanges and IRanges, become handy when dealing with problems in genomics. For instance, they can be used for annotating the genome and storing the data.
 
-Example: annotating all the exons would require storing the information regarding their location. These intervals (the start and end of every exon) can be stored in an IRanges object. GRanges object can also store information regarding chromosome (seqnames) and strand and hence more specific to genomics.
+> Example: annotating all the exons would require storing the information regarding their location. These intervals (the start and end of every exon) can be stored in an IRanges object. GRanges object can also store information regarding chromosome (seqnames) and strand and hence more specific to genomics.
 
 
 ```r
@@ -549,9 +547,9 @@ show(gene.range)
 
 ### Calculating Coverage
 
-To do a differential expression analysis we will need data about how many reads align to a given gene. We can compute this type of coverage data using the `coverage` function.
+> To do a differential expression analysis we will need data about how many reads align to a given gene. We can compute this type of coverage data using the `coverage` function.
 
-First lets find out how many bases cover each position in every chromosome.
+> First lets find out how many bases cover each position in every chromosome.
 
 
 ```r
@@ -590,7 +588,7 @@ First lets find out how many bases cover each position in every chromosome.
 ```
 
 
-For differential expression analysis we will need coverage on a per gene basis.
+> For differential expression analysis we will need coverage on a per gene basis.
 
 
 ```r
@@ -609,7 +607,7 @@ gene.coverage
 ```
 
 
-Restricting attention to chr2L.
+> Restricting attention to chr2L.
 
 
 ```r
@@ -631,7 +629,7 @@ length(ranges(gene.range)$chr2L)
 ```
 
 
-Using the coverage and gene annotation data, we can now build a count table and store it in a data frame.
+> Using the coverage and gene annotation data, we can now build a count table and store it in a data frame.
 
 
 ```r
@@ -660,15 +658,15 @@ head(countTable)
 ```
 
 
-Some methods for doing differential expression analysis such as [edgeR](http://www.bioconductor.org/packages/2.11/bioc/html/edgeR.html) can work from the raw count data.
+> Some methods for doing differential expression analysis such as [edgeR](http://www.bioconductor.org/packages/2.11/bioc/html/edgeR.html) can work from the raw count data.
 
-Other methods use normalized coverage statistics. The calculated raw number of read counts need to be normalizes for two reasons:
+> Other methods use normalized coverage statistics. The calculated raw number of read counts need to be normalizes for two reasons:
 
-1. Longer genes will have more reads aligned to them, thus we need to normalize the read count by gene length.
+> 1. Longer genes will have more reads aligned to them, thus we need to normalize the read count by gene length.
 
-2. Libraries with larger overall number of reads will have more reads aligned to genes compared with a library with less number of total reads. As a result, the normalization should also take into account the library size (total number of reads generated).
+> 2. Libraries with larger overall number of reads will have more reads aligned to genes compared with a library with less number of total reads. As a result, the normalization should also take into account the library size (total number of reads generated).
 
-The most widely used normalization value is RPKM defined as the "number of Reads Per Kilobase of gene (feature) per Million mapped reads" (Mortazavi et al, 2008).
+> The most widely used normalization value is RPKM defined as the "number of Reads Per Kilobase of gene (feature) per Million mapped reads" (Mortazavi et al, 2008).
 
 
 ```r
@@ -691,7 +689,7 @@ head(countTable)
 
 
 ## Take Home Problem
-Create a similar count table for all the exons located on chr2L.
+> Create a similar count table for all the exons located on chr2L.
 
 ## References
-This seminar is based on a Bioconductor [RNA-Seq tutorial](http://www.bioconductor.org/packages/2.11/data/experiment/html/RnaSeqTutorial.html)
+> This seminar is based on a Bioconductor [RNA-Seq tutorial](http://www.bioconductor.org/packages/2.11/data/experiment/html/RnaSeqTutorial.html)
